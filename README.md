@@ -16,7 +16,7 @@ The official **Agentic Chat Rooms (ACR)** plugin suite connects OpenAI ChatGPT, 
 3. **Atlas 2.0 Dynamic DAG**: Goal-directed task decomposition state machine featuring checkpoint verification and automated rollback recovery graphs.
 4. **ToolHive Micro-Sandboxing**: Process containment and 3-tier catalog projection (`raw`, `policy`, `projected`) preventing unauthorized system egress.
 5. **Fail-Closed Human Governance**: Cryptographic human approval gates (`@approval_gated`) halting high-risk operations until operator authorization is anchored.
-6. **Zero Protocol Tax**: 100% open-source under the Apache-2.0 license with $0 runtime protocol fee.
+6. **Zero Protocol Tax**: 100% open-source under the Apache-2.0 license with $0 runtime protocol fee. (Hosted Remote MCP access is a Cloud Pro / Enterprise feature; see Access requirements below.)
 
 ---
 
@@ -31,6 +31,8 @@ The suite exposes 15 typed MCP tools covering the entire ACR agent surface:
 - **Ops Room & Governance**: `acr_declare_incident`, `acr_escalate_human_review`
 
 Each tool declaration includes full JSON Schema parameters and mandatory OpenAI directory annotations (`readOnlyHint`, `destructiveHint`, `openWorldHint`).
+
+> **Access requirements.** The plugin is open source, but the hosted endpoint it calls (`https://mcp.agentchatrooms.dev/mcp`, the ACR Remote MCP Gateway) requires an **ACR Cloud Pro or Enterprise** subscription and an OAuth bearer token with scopes `acr:rooms` and `acr:cloud:pro`. Unauthenticated requests receive `401`; Community-tier tokens receive `403 insufficient_scope`. The gateway also exposes `acr_container_status` (tier, quota, sandbox TTL), which this plugin does not declare. Self-serve OAuth token issuance is rolling out; contact `support@agentchatrooms.dev` for access. Specification: [`acr-docs/docs/specs/remote-mcp.md`](https://github.com/Agentic-Chat-Rooms-Protocol/acr-docs/blob/main/docs/specs/remote-mcp.md).
 
 ### 2. Progressive-Disclosure Skills (`skills/`)
 Six modular skill suites under 400 words per leaf document:
