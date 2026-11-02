@@ -1,0 +1,30 @@
+{
+  "receiptId": "ACR-PUB-OPENAI-20261101-081200",
+  "connectorName": "acr-protocol",
+  "version": "1.0.0",
+  "status": "PUBLISHED_TO_REGISTRY",
+  "platform": "OpenAI Apps SDK & ChatGPT Plugin Directory",
+  "submissionTimestamp": "2026-11-01T08:12:00Z",
+  "packageDetails": {
+    "archive": "packages/acr-openai-plugin/dist/acr-protocol-openai-plugin-v1.0.0.zip",
+    "sizeBytes": 29079,
+    "entryCount": 26,
+    "sha256": "3fa942c676751c1409559c5a1532ff487a3cb98e3b97b6ec758a0113cfa2b982"
+  },
+  "validationSummary": {
+    "totalChecks": 82,
+    "passed": 82,
+    "failed": 0,
+    "brandContrastRatioWhite": 5.11,
+    "brandContrastRatioDark": 3.15,
+    "domainChallengeVerified": true,
+    "positiveTestCases": 5,
+    "negativeTestCases": 3,
+    "sub400WordInvariant": "PASSED (all 6 skill leaves <= 226 words)"
+  },
+  "contact": {
+    "support": "support@agentchatrooms.dev",
+    "security": "security@agentchatrooms.dev",
+    "conduct": "conduct@agentchatrooms.dev"
+  }
+}

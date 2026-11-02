@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACR Consensus &amp; Atlas DAG Inspector</title>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --card-bg: #18202c;
+      --border: #2d3b4e;
+      --text: #f0f4f8;
+      --text-muted: #a0aec0;
+      --primary: #4a6fa5;
+      --primary-hover: #5d84be;
+      --success: #2e7d32;
+      --danger: #c62828;
+      --warning: #ef6c00;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .badge-bft {
+      background-color: #1e3a5f;
+      color: #90caf9;
+      border: 1px solid #42a5f5;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover, .tab-button:focus {
+      color: var(--text);
+      outline: none;
+    }
+
+    .tab-button.active {
+      color: #90caf9;
+      border-bottom-color: #42a5f5;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quorum-bar-container {
+      background: #090d14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      height: 24px;
+      position: relative;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+
+    .quorum-fill {
+      background: #2e7d32;
+      height: 100%;
+      width: 75%;
+      transition: width 0.3s ease;
+    }
+
+    .quorum-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 67%;
+      width: 3px;
+      background: #ffd54f;
+      z-index: 2;
+    }
+
+    .quorum-marker::after {
+      content: "67% Quorum Gate";
+      position: absolute;
+      top: -18px;
+      left: -40px;
+      font-size: 0.65rem;
+      color: #ffd54f;
+      font-weight: bold;
+    }
+
+    .dag-node {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      background: #111822;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dag-node.completed {
+      border-left: 5px solid #4caf50;
+    }
+
+    .dag-node.in-progress {
+      border-left: 5px solid #2196f3;
+    }
+
+    .dag-node.pending {
+      border-left: 5px solid #9e9e9e;
+    }
+
+    .dag-node.rollback {
+      border-left: 5px solid #f44336;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    button.btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: background 0.15s;
+    }
+
+    button.btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    button.btn-primary:hover { background: var(--primary-hover); }
+
+    button.btn-success { background: #2e7d32; color: #fff; }
+    button.btn-danger { background: #c62828; color: #fff; }
+
+    pre {
+      background: #090d14;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Agentic Chat Rooms (ACR)</h1>
+      <p style="color: var(--text-muted); font-size: 0.875rem;">Interactive Consensus &amp; Atlas DAG Canvas Inspector</p>
+    </div>
+    <div>
+      <span class="badge badge-bft">67% Consensus Gate</span>
+      <span class="badge" style="background: #2e7d32; color: #fff;">DID Verified</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-button active" role="tab" aria-selected="true" data-tab="consensus">Consensus Voting</button>
+    <button class="tab-button" role="tab" aria-selected="false" data-tab="dag">Atlas 2.0 DAG</button>
+    <button class="tab-button" role="tab" aria-selected="false" data-tab="room">Room History</button>
+  </nav>
+
+  <main>
+    <!-- Consensus Tab -->
+    <section id="consensus" class="tab-panel active" role="tabpanel">
+      <div class="card">
+        <div class="card-title">
+          <span>Active Proposal: <strong id="prop-id">prop-failover-902</strong></span>
+          <span class="badge" style="background:#1b5e20; color:#a5d6a7;">STATUS: APPROVED (75%)</span>
+        </div>
+        <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">
+          <strong>Action:</strong> Failover traffic to secondary region us-east-2 under incident INC-8421.
+        </p>
+        <div class="quorum-bar-container" title="67% Quorum required. Current: 75%">
+          <div class="quorum-marker"></div>
+          <div class="quorum-fill" id="quorum-fill" style="width: 75%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+          <span>0%</span>
+          <span>Approval: 3 of 4 DIDs (75.0%)</span>
+          <span>100%</span>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-success" id="btn-approve">Cast APPROVE</button>
+          <button class="btn btn-danger" id="btn-dissent">Cast DISSENT (Rationale Req)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Preserved Dissents (RFC-0002)</div>
+        <div id="dissent-list">
+          <pre>did:key:z6Mkj294... [2026-11-01T07:45:00Z]:
+Rationale: "Secondary region redis cache replication lag currently at 120ms. Recommend warming replica before traffic shift."</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAG Tab -->
+    <section id="dag" class="tab-panel" role="tabpanel">
+      <div class="card">
+        <div class="card-title">
+          <span>Atlas 2.0 Dynamic DAG: INC-8421</span>
+          <span class="badge" style="background:#0d47a1; color:#90caf9;">Checkpoint: #blk-9812</span>
+        </div>
+        <div class="dag-node completed">
+          <div>
+            <strong>Step 1: Drain Ingress Traffic</strong>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Checkpoint: sha256:7b92... | Status: COMPLETED</p>
+          </div>
+          <span class="badge" style="background: #2e7d32; color: #fff;">COMPLETED</span>
+        </div>
+        <div class="dag-node in-progress">
+          <div>
+            <strong>Step 2: Region DNS Switch</strong>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Checkpoint: sha256:1a84... | Status: IN_PROGRESS (Waiting for 67% gate)</p>
+          </div>
+          <span class="badge" style="background: #1565c0; color: #fff;">IN_PROGRESS</span>
+        </div>
+        <div class="dag-node pending">
+          <div>
+            <strong>Step 3: Verification &amp; Rollback Safety Check</strong>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Dependencies: [Step 1, Step 2] | Status: PENDING</p>
+          </div>
+          <span class="badge" style="background: #616161; color: #fff;">PENDING</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Room History Tab -->
+    <section id="room" class="tab-panel" role="tabpanel">
+      <div class="card">
+        <div class="card-title">Verified Room Audit Ledger: ops-war-room</div>
+        <pre>[14:30:02Z] did:key:z6MkuA... (Security Sentinel):
+"Incident INC-8421 declared. Primary cluster API latency p99 > 1500ms."
+
+[14:30:15Z] did:key:z6MkwB... (DevOps Lead):
+"Proposed failover action prop-failover-902. Requesting 67% quorum gate."
+
+[14:31:00Z] System Ledger (State Hash Chain):
+"Quorum reached (75%). Action authorized by Ed25519 DIDs. Block height #10492."</pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+        button.classList.add('active');
+        button.setAttribute('aria-selected', 'true');
+        const targetId = button.getAttribute('data-tab');
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+
+    // Mock interactive voting handlers for canvas UI
+    document.getElementById('btn-approve').addEventListener('click', () => {
+      alert("ACR MCP Canvas: Cast APPROVE ballot with agent DID Ed25519 signature.");
+    });
+    document.getElementById('btn-dissent').addEventListener('click', () => {
+      const rationale = prompt("RFC-0002 Invariant: Rationale is mandatory for DISSENT. Enter rationale:");
+      if (rationale && rationale.trim()) {
+        alert("ACR MCP Canvas: Recorded DISSENT with preserved rationale: " + rationale);
+      } else {
+        alert("Error: DISSENT rejected. Rationale cannot be empty.");
+      }
+    });
+  </script>
+</body>
+</html>

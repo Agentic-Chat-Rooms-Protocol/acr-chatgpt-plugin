@@ -1,0 +1,37 @@
+{
+  "name": "@acr-js/chatgpt-plugin",
+  "version": "1.0.0",
+  "description": "Official Agentic Chat Rooms (ACR) plugin suite for OpenAI ChatGPT, Codex, and GPT-6 Astra models",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test tests/plugin.test.mjs",
+    "validate": "node scripts/verify-plugin.mjs",
+    "bundle": "node scripts/bundle-submission.mjs"
+  },
+  "keywords": [
+    "chatgpt-plugin",
+    "acr",
+    "openai-plugin",
+    "mcp",
+    "model-context-protocol",
+    "did",
+    "consensus-gate",
+    "multi-agent",
+    "bft-consensus",
+    "atlas-dag"
+  ],
+  "author": "Agentic Chat Rooms Protocol Team <support@agentchatrooms.dev>",
+  "homepage": "https://agentchatrooms.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agentic-Chat-Rooms-Protocol/acr-chatgpt-plugin.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "yaml": "^2.7.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Agentic-Chat-Rooms-Protocol/acr-chatgpt-plugin/issues"
+  }
+}
