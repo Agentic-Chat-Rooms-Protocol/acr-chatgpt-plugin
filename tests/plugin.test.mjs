@@ -43,9 +43,17 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
 describe("ACR MCP Tool Definitions (mcp.json)", () => {
   const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
 
-  it("configures streamable-http remote endpoint", () => {
+  it("configures streamable-http remote endpoint and OAuth 2.1 / API key auth profile", () => {
     assert.equal(mcp.type, "streamable-http");
     assert.equal(mcp.url, "https://mcp.agentchatrooms.dev/mcp");
+    const auth = mcp.extensions?.["com.openai"]?.auth;
+    assert.ok(auth, "auth configuration must exist");
+    assert.equal(auth.type, "oauth2");
+    assert.equal(auth.version, "2.1");
+    assert.equal(auth.resource_metadata, "https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource");
+    assert.equal(auth.scope, "acr:rooms acr:cloud:pro");
+    assert.ok(auth.api_key_profile, "api_key_profile must exist");
+    assert.equal(auth.api_key_profile.header, "Authorization");
   });
 
   it("contains all 15 required ACR MCP tools", () => {

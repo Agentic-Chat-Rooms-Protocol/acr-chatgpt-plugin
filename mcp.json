@@ -5,7 +5,25 @@
   "extensions": {
     "com.openai": {
       "auth": {
-        "type": "none"
+        "type": "oauth2",
+        "standard": "RFC9728",
+        "version": "2.1",
+        "authorization_type": "bearer",
+        "client_url": "https://auth.agentchatrooms.dev/authorize",
+        "authorization_url": "https://auth.agentchatrooms.dev/token",
+        "authorization_content_type": "application/json",
+        "scope": "acr:rooms acr:cloud:pro",
+        "resource_metadata": "https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource",
+        "authorization_servers": [
+          "https://auth.agentchatrooms.dev",
+          "https://mcp.agentchatrooms.dev/oauth"
+        ],
+        "api_key_profile": {
+          "header": "Authorization",
+          "prefix": "Bearer",
+          "env": "ACR_CLOUD_TOKEN",
+          "description": "ACR Cloud Pro or Enterprise API bearer token for non-interactive / autonomous agent execution."
+        }
       }
     }
   },
