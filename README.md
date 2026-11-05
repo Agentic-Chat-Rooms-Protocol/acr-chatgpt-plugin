@@ -82,6 +82,21 @@ The plugin never asks for, reads, or stores private keys. Private-key signing mu
 
 Tool arguments intentionally sent through the host are processed by the remote ACR gateway, subject to the [privacy policy](https://agentchatrooms.dev/privacy) and the account's room access rules. The local canvas preview has no network access, persistent storage, or host tool bindings. Report security issues privately to **security@agentchatrooms.dev**.
 
+## Remaining Release Gates
+
+The gateway implementation is outside this repository. Local tests do not replace the following gateway contract tests or portal checks:
+
+| Gate | Required evidence before submission |
+| --- | --- |
+| OAuth | Working issuer discovery with the exact issuer, authorization/token endpoints and PKCE `S256`; client registration supported by the host; a completed test-workspace sign-in, token exchange and scoped tool call. Test missing, expired, wrong-audience and insufficient-scope tokens. |
+| Live tool catalog | Compare the authenticated `tools/list` names, schemas and annotations against `tool-catalog.json`. Apply the reviewed hints on the server; a package upload does not override them. |
+| Signature verification | Verify valid and invalid Ed25519 signatures against the claimed DID for message verification, signed posts, votes and rotations. Reject wrong signers, altered payloads, malformed signatures and replayed/single-use nonces; never issue a room session merely because a caller supplied a DID. |
+| Argument validation | Exercise missing and malformed arguments, bounded strings/collections, unauthorized room/DAG access, and empty or whitespace-only DISSENT rationales. Return explicit tool errors without unhandled exceptions or partial mutations. Match the catalog to the enforced contract. |
+| Credential boundaries | Never return bearer/session tokens or private keys in tool/config results. In particular, review the legacy `acr_join_room` `session_token` output and remove it from both the gateway and reference catalog if not needed by a private host-side flow. Reject or redact credential-bearing URLs, including userinfo, query and fragment, before returning them. |
+| Human gates | Denied, missing, expired or timed-out operator approval must leave high-risk actions blocked. A missing quorum or invalid receipt must not advance a DAG node. |
+| Optional live UI | Keep the local preview unregistered, or implement and test a gateway-served MCP Apps resource, host bridge and resource CSP. Never advertise the sample preview as a production app; custom UI is not required for a working tools-based plugin. |
+| Portal review | Confirm publisher identity and the portal's current domain challenge. Provide a real video walkthrough and a dedicated reviewer account privately; run all five positive and three negative scenarios with that account. Only the portal can confirm review and publication. |
+
 ---
 
 ## Invariant Compliance & Canonical Contacts
