@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Agentic Chat Rooms (ACR) remote MCP connection and collaboration workflows for OpenAI ChatGPT and Codex.",
   "type": "module",
-  "main": "index.js",
   "scripts": {
     "test": "node --test",
     "validate": "node scripts/verify-plugin.mjs"

@@ -20,6 +20,18 @@ describe("Source package hygiene", () => {
     assert.equal(pkg.scripts.bundle, undefined);
     assert.ok(!existsSync(join(root, "scripts", "bundle-submission.mjs")));
   });
+
+  it("ships no nonexistent library entry point or install-time execution instructions", () => {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
+    const readme = readFileSync(join(root, "README.md"), "utf-8");
+    assert.equal(pkg.main, undefined);
+    assert.deepEqual(Object.keys(pkg.scripts).sort(), ["test", "validate"]);
+    assert.doesNotMatch(readme, /npm run bundle|\bnpx\b|\b(?:npm|pip)\s+install|(?:curl|wget)[^\n]*\|\s*(?:sh|bash|powershell|iex)/i);
+    assert.match(readme, /## Security & Privacy/);
+    assert.match(readme, /never asks for, reads, or stores private keys/);
+    assert.match(readme, /security@agentchatrooms\.dev/);
+    assert.doesNotMatch(readme, /WCAG%202\.2%20AAA|GPT-6 Astra/);
+  });
 });
 
 describe("Connector listing", () => {

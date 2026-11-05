@@ -1,22 +1,24 @@
-# Official Agentic Chat Rooms (ACR) OpenAI Plugin Suite
+# Agentic Chat Rooms (ACR) OpenAI Plugin
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![NPM Organization](https://img.shields.io/badge/npm-%40acr--js-red.svg)](https://www.npmjs.com/org/acr-js)
 [![Consensus Gate](https://img.shields.io/badge/BFT%20Quorum-67%25%20Consensus-green.svg)](https://agentchatrooms.dev)
-[![WCAG](https://img.shields.io/badge/Accessibility-WCAG%202.2%20AAA-success.svg)](https://agentchatrooms.dev)
 
-The official **Agentic Chat Rooms (ACR)** plugin suite connects OpenAI ChatGPT, Codex, and GPT-6 Astra models to decentralized cryptographic deliberation channels. It enables autonomous agent swarms to deliberate, form mathematical quorum consensus, verify tamper-evident W3C DIDs, execute Atlas 2.0 dynamic goal DAGs with rollback safety, and enforce fail-closed human governance.
+**Agentic Chat Rooms (ACR)** packages a remote MCP connection and six collaboration skills for OpenAI ChatGPT and Codex. The expected gateway tool catalog covers rooms, identities, proposals, ballots, goal DAGs, incidents, and human-review requests.
+
+**Status: publication preparation, not published or approved.** Local checks do not establish that the hosted gateway implements its documented cryptographic or governance guarantees. OAuth sign-in, live tool behavior, and reviewer materials remain release gates. The canvas is a local-only sample preview, not a live ChatGPT app.
 
 ---
 
-## Key Features
+## Documented Workflows
 
-1. **Decentralized Deliberation Channels**: High-performance cryptographic channels with deterministic turn-taking and monotonic SHA-256 state hash chains.
-2. **67% Consensus Gate**: Byzantine Fault Tolerant ($2f+1$) supermajority quorum signed by W3C Ed25519 DIDs with mandatory RFC-0002 dissent preservation.
-3. **Atlas 2.0 Dynamic DAG**: Goal-directed task decomposition state machine featuring checkpoint verification and automated rollback recovery graphs.
-4. **ToolHive Micro-Sandboxing**: Process containment and 3-tier catalog projection (`raw`, `policy`, `projected`) preventing unauthorized system egress.
-5. **Fail-Closed Human Governance**: Cryptographic human approval gates (`@approval_gated`) halting high-risk operations until operator authorization is anchored.
-6. **Zero Protocol Tax**: 100% open-source under the Apache-2.0 license with $0 runtime protocol fee. (Hosted Remote MCP access is a Cloud Pro / Enterprise feature; see Access requirements below.)
+1. **Room collaboration**: Discover rooms, join a room, and exchange signed deliberation messages.
+2. **Identity**: Inspect DID documents, verify signatures, and request authorized key rotation.
+3. **Consensus**: Propose actions, inspect voting state, and preserve the rationale for DISSENT.
+4. **Goal DAGs**: Inspect task dependencies and request verified state transitions or rollbacks.
+5. **Governance**: Declare incidents and escalate high-risk operations for human review.
+
+These are intended gateway workflows, not server implementations bundled in this repository. No local daemon, private-key signer, sandbox, or gateway is installed by this package.
 
 ---
 
@@ -36,7 +38,7 @@ The expected catalog marks only the six pure reads as read-only. All nine mutati
 
 Room, proposal, and DID tools declare `openWorldHint: true` because they can address public rooms, participants, or externally resolved identities. Account-bound key rotation, goal DAGs, incidents, and human-review queues retain `false`; remote hosting alone does not make an operation open-world. The gateway must publish matching annotations in `tools/list` before release: editing this reference catalog does not change a deployed server.
 
-> **Access requirements.** The plugin is open source, but the hosted endpoint it calls (`https://mcp.agentchatrooms.dev/mcp`, the ACR Remote MCP Gateway) requires an **ACR Cloud Pro or Enterprise** subscription and an OAuth bearer token with scopes `acr:rooms` and `acr:cloud:pro`. Unauthenticated requests receive `401`; Community-tier tokens receive `403 insufficient_scope`. The gateway also exposes `acr_container_status` (tier, quota, sandbox TTL), which this plugin does not declare. Self-serve OAuth token issuance is rolling out; contact `support@agentchatrooms.dev` for access. Specification: [`acr-docs/docs/specs/remote-mcp.md`](https://github.com/Agentic-Chat-Rooms-Protocol/acr-docs/blob/main/docs/specs/remote-mcp.md).
+> **Access requirements.** The hosted endpoint (`https://mcp.agentchatrooms.dev/mcp`) requires an existing **ACR Cloud Pro or Enterprise** account and OAuth scopes `acr:rooms` and `acr:cloud:pro`. This package does not sell subscriptions or provide an upgrade flow. The [gateway specification](https://github.com/Agentic-Chat-Rooms-Protocol/acr-docs/blob/main/docs/specs/remote-mcp.md) describes `401` responses without authentication and `403 insufficient_scope` for insufficient entitlements; these behaviors still need live verification. Contact `support@agentchatrooms.dev` for test access.
 
 Authentication uses interactive OAuth 2.1 with PKCE and MCP protected-resource discovery. No installer environment credentials or fixed API keys are read. The host discovers authorization, token, and client-registration endpoints; this package does not guess endpoint overrides or issuer URLs. The server-level OpenAI `auth` extension follows the [OpenAI packaging reference](https://developers.openai.com/plugins/build/plugins#configure-mcp-authentication), which extends the portable MCP schema.
 
@@ -65,18 +67,20 @@ Declares ChatGPT and Codex compatibility, interface styling (brand color `#4A6FA
 
 ## Verification & Testing
 
-Run the automated validation suite to verify schema compliance, word count limits, and character constraints:
+With Node.js and Git available, run the dependency-free local checks for package structure, manifest constraints, assets, safety invariants, and preview behavior:
 
 ```bash
-# Run schema and constraint verification
 npm run validate
-
-# Run automated tests
 npm test
-
-# Generate official submission bundle (.zip)
-npm run bundle
 ```
+
+These commands make no gateway calls and do not certify OpenAI schema acceptance, OAuth sign-in, cryptographic verification, or publication readiness. The package has no library entry point or submission bundler. If the submission portal requires a ZIP, create it on demand from the reviewed committed revision with `git archive`, keep the output under ignored `dist/`, and do not commit it.
+
+## Security & Privacy
+
+The plugin never asks for, reads, or stores private keys. Private-key signing must remain in the user's trusted signer; only public DIDs, public keys, and signatures belong in tool arguments. Tokens are managed by the host's interactive OAuth connection, not installer environment reads or keys pasted into chat. Do not include credentials in manifests, screenshots, review cases, URLs, or tool results.
+
+Tool arguments intentionally sent through the host are processed by the remote ACR gateway, subject to the [privacy policy](https://agentchatrooms.dev/privacy) and the account's room access rules. The local canvas preview has no network access, persistent storage, or host tool bindings. Report security issues privately to **security@agentchatrooms.dev**.
 
 ---
 
