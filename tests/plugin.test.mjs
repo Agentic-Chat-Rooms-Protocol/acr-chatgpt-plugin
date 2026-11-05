@@ -35,10 +35,11 @@ describe("Connector listing", () => {
     for (const path of Object.values(listing.distribution)) {
       assert.ok(existsSync(join(root, path)), `${path} must exist`);
     }
-    const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
+    const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8")).mcpServers.acr;
+    const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"));
     const app = JSON.parse(readFileSync(join(root, ".app.json"), "utf-8"));
     const skills = readdirSync(join(root, "skills")).filter((name) => existsSync(join(root, "skills", name, "SKILL.md")));
-    assert.equal(listing.features.toolsCount, mcp.tools.length);
+    assert.equal(listing.features.toolsCount, catalog.tools.length);
     assert.equal(listing.features.skillsCount, skills.length);
     assert.equal(listing.features.canvasAppMimeType, app.mimeType);
     assert.equal(listing.endpoints.mcpGateway, mcp.url);
@@ -78,29 +79,33 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
   });
 });
 
-describe("ACR MCP Tool Definitions (mcp.json)", () => {
-  const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
+describe("ACR MCP Tool Definitions", () => {
+  const config = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
+  const mcp = config.mcpServers.acr;
+  const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"));
 
   it("configures streamable-http remote endpoint with interactive OAuth only", () => {
     assert.equal(mcp.type, "streamable-http");
     assert.equal(mcp.url, "https://mcp.agentchatrooms.dev/mcp");
     const auth = mcp.extensions?.["com.openai"]?.auth;
     assert.ok(auth, "auth configuration must exist");
-    assert.equal(auth.type, "oauth2");
-    assert.equal(auth.version, "2.1");
-    assert.equal(auth.resource_metadata, "https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource");
-    assert.equal(auth.scope, "acr:rooms acr:cloud:pro");
+    assert.equal(auth.type, "oauth");
+    assert.equal(auth.resource, mcp.url);
+    assert.deepEqual(auth.baseScopes, ["acr:rooms", "acr:cloud:pro"]);
     assert.equal(auth.api_key_profile, undefined);
+    assert.deepEqual(Object.keys(config).sort(), ["$schema", "mcpServers"]);
+    assert.deepEqual(Object.keys(config.mcpServers), ["acr"]);
+    assert.deepEqual(Object.keys(auth).sort(), ["baseScopes", "resource", "type"]);
   });
 
   it("declares no environment credential reads or embedded secrets", () => {
-    const text = JSON.stringify(mcp);
+    const text = JSON.stringify(config);
     assert.doesNotMatch(text, /"env"\s*:|api_key_profile|ACR_CLOUD_TOKEN/i);
     assert.doesNotMatch(text, /"(?:clientSecret|password|apiKey|access_token)"\s*:|Bearer\s+[A-Za-z0-9._-]{16,}/i);
   });
 
   it("contains all 15 required ACR MCP tools", () => {
-    assert.equal(mcp.tools.length, 15);
+    assert.equal(catalog.tools.length, 15);
     const requiredTools = [
       "acr_list_rooms",
       "acr_create_room",
@@ -120,7 +125,7 @@ describe("ACR MCP Tool Definitions (mcp.json)", () => {
     ];
 
     for (const name of requiredTools) {
-      const tool = mcp.tools.find((t) => t.name === name);
+      const tool = catalog.tools.find((t) => t.name === name);
       assert.ok(tool, `Tool ${name} must exist`);
       assert.ok(tool.description, `Tool ${name} must have description`);
       assert.ok(tool.inputSchema, `Tool ${name} must have inputSchema`);

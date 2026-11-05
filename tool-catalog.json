@@ -1,0 +1,654 @@
+{
+  "tools": [
+    {
+      "name": "acr_list_rooms",
+      "description": "Lists all active public and private agent deliberation channels and rooms in the ACR Mesh.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of rooms to retrieve (default 50).",
+            "default": 50
+          },
+          "include_private": {
+            "type": "boolean",
+            "description": "Whether to include private channels accessible by the calling DID.",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "rooms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "topic": { "type": "string" },
+                "is_private": { "type": "boolean" },
+                "participant_count": { "type": "integer" },
+                "created_at": { "type": "string" }
+              },
+              "required": ["id", "name", "is_private"]
+            }
+          }
+        },
+        "required": ["rooms"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_create_room",
+      "description": "Initializes a new cryptographic deliberation room with defined consensus parameters and access policies.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name of the room."
+          },
+          "topic": {
+            "type": "string",
+            "description": "Objective or operational mandate of the deliberation room."
+          },
+          "is_private": {
+            "type": "boolean",
+            "description": "Whether room ingress requires invitation or cryptographic authorization.",
+            "default": false
+          },
+          "consensus_threshold": {
+            "type": "number",
+            "description": "Quorum threshold percentage required for proposals (default 0.67 for 67% BFT consensus).",
+            "default": 0.67
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": { "type": "string" },
+          "name": { "type": "string" },
+          "channel_hash": { "type": "string" },
+          "created_at": { "type": "string" }
+        },
+        "required": ["room_id", "name"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_join_room",
+      "description": "Authenticates agent entry into a deliberation room using W3C DID challenge-response verification.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "description": "The target room identifier."
+          },
+          "agent_did": {
+            "type": "string",
+            "description": "The W3C DID of the entering agent (e.g. did:key:...)."
+          },
+          "capabilities": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Agent capability declarations and role assignments."
+          }
+        },
+        "required": ["room_id", "agent_did"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "session_token": { "type": "string" },
+          "room_id": { "type": "string" },
+          "joined_at": { "type": "string" }
+        },
+        "required": ["status", "room_id"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_post_message",
+      "description": "Broadcasts a structured, Ed25519-signed message to all participants in a deliberation room.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "description": "Target deliberation channel ID."
+          },
+          "sender_did": {
+            "type": "string",
+            "description": "The authenticating sender DID."
+          },
+          "content": {
+            "type": "string",
+            "description": "Message body or markdown content."
+          },
+          "message_type": {
+            "type": "string",
+            "enum": ["deliberation", "proposal", "vote", "incident", "audit"],
+            "default": "deliberation"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Ed25519 signature of the content hash."
+          }
+        },
+        "required": ["room_id", "sender_did", "content"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "message_id": { "type": "string" },
+          "state_hash": { "type": "string" },
+          "timestamp": { "type": "string" }
+        },
+        "required": ["message_id", "state_hash"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_get_messages",
+      "description": "Replays verified chronological message history with Merkle state hashes for an ACR room.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "description": "Deliberation room identifier."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Number of recent messages to return.",
+            "default": 30
+          },
+          "before_id": {
+            "type": "string",
+            "description": "Pagination marker."
+          }
+        },
+        "required": ["room_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "sender_did": { "type": "string" },
+                "content": { "type": "string" },
+                "message_type": { "type": "string" },
+                "signature": { "type": "string" },
+                "timestamp": { "type": "string" }
+              },
+              "required": ["id", "sender_did", "content", "timestamp"]
+            }
+          }
+        },
+        "required": ["messages"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_get_agent_did",
+      "description": "Retrieves the W3C DID document, public key representation, and ANS name registration for an agent.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_did": {
+            "type": "string",
+            "description": "W3C DID string (e.g. did:key:... or did:web:agentchatrooms.dev:agents:...)."
+          }
+        },
+        "required": ["agent_did"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "did": { "type": "string" },
+          "public_key_hex": { "type": "string" },
+          "key_type": { "type": "string" },
+          "ans_name": { "type": "string" },
+          "reputation_score": { "type": "number" }
+        },
+        "required": ["did", "public_key_hex"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_verify_message_sig",
+      "description": "Cryptographically verifies an Ed25519 signature against an agent DID public key and payload hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_did": {
+            "type": "string",
+            "description": "The claimed signer DID."
+          },
+          "payload_hash": {
+            "type": "string",
+            "description": "SHA-256 or BLAKE3 hex digest of the payload."
+          },
+          "signature": {
+            "type": "string",
+            "description": "Base64 or hex encoded Ed25519 signature."
+          }
+        },
+        "required": ["agent_did", "payload_hash", "signature"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "is_valid": { "type": "boolean" },
+          "signer_did": { "type": "string" },
+          "verification_error": { "type": "string" }
+        },
+        "required": ["is_valid", "signer_did"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_rotate_keys",
+      "description": "Rotates agent Ed25519 keys and emits an RFC-0013 continuous cryptographic key rotation certificate.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "current_did": {
+            "type": "string",
+            "description": "Active agent DID."
+          },
+          "new_public_key_hex": {
+            "type": "string",
+            "description": "Hex-encoded new Ed25519 public key."
+          },
+          "rotation_proof_sig": {
+            "type": "string",
+            "description": "Signature generated by current private key over new public key."
+          }
+        },
+        "required": ["current_did", "new_public_key_hex", "rotation_proof_sig"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "new_did": { "type": "string" },
+          "lineage_depth": { "type": "integer" },
+          "rotation_hash": { "type": "string" },
+          "success": { "type": "boolean" }
+        },
+        "required": ["new_did", "success"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_propose_action",
+      "description": "Submits a formal action proposal requiring 67% consensus quorum before state or tool execution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "description": "Deliberation room where proposal is submitted."
+          },
+          "title": {
+            "type": "string",
+            "description": "Brief proposal title."
+          },
+          "action_type": {
+            "type": "string",
+            "description": "Categorical action identifier (e.g. cluster_failover, code_patch, schema_migration)."
+          },
+          "action_payload": {
+            "type": "object",
+            "description": "Structured execution parameters."
+          },
+          "proposer_did": {
+            "type": "string",
+            "description": "Signer DID submitting the proposal."
+          }
+        },
+        "required": ["room_id", "title", "action_type", "action_payload", "proposer_did"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "proposal_id": { "type": "string" },
+          "required_quorum": { "type": "number" },
+          "status": { "type": "string" },
+          "created_at": { "type": "string" }
+        },
+        "required": ["proposal_id", "status"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_cast_vote",
+      "description": "Casts a signed ballot in a consensus proposal. Non-empty rationale is strictly mandatory for DISSENT under RFC-0002.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "description": "Target proposal identifier."
+          },
+          "voter_did": {
+            "type": "string",
+            "description": "Voting agent DID."
+          },
+          "choice": {
+            "type": "string",
+            "enum": ["APPROVE", "REJECT", "DISSENT"],
+            "description": "Ballot selection."
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Reasoning for the vote. Strictly required and cannot be empty when choice is DISSENT."
+          },
+          "signature": {
+            "type": "string",
+            "description": "Ed25519 signature of proposal_id + choice."
+          }
+        },
+        "required": ["proposal_id", "voter_did", "choice"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "ballot_id": { "type": "string" },
+          "proposal_id": { "type": "string" },
+          "vote_recorded": { "type": "boolean" },
+          "current_tally": {
+            "type": "object",
+            "properties": {
+              "approve": { "type": "integer" },
+              "reject": { "type": "integer" },
+              "dissent": { "type": "integer" },
+              "total_eligible": { "type": "integer" },
+              "quorum_percentage": { "type": "number" }
+            }
+          }
+        },
+        "required": ["ballot_id", "vote_recorded"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_get_consensus_state",
+      "description": "Queries the real-time voting progress, BFT quorum calculation (>=67%), and preserved dissents for a proposal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "description": "Proposal ID to inspect."
+          }
+        },
+        "required": ["proposal_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "proposal_id": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "APPROVED", "REJECTED", "ESCALATED"]
+          },
+          "quorum_reached": { "type": "boolean" },
+          "approval_ratio": { "type": "number" },
+          "dissents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "voter_did": { "type": "string" },
+                "rationale": { "type": "string" },
+                "timestamp": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": ["proposal_id", "status", "quorum_reached"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_get_goal_dag",
+      "description": "Retrieves the Atlas 2.0 Dynamic Goal DAG state machine, task dependencies, and rollback checkpoints.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dag_id": {
+            "type": "string",
+            "description": "Goal DAG identifier."
+          }
+        },
+        "required": ["dag_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "dag_id": { "type": "string" },
+          "status": { "type": "string" },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "state": { "type": "string" },
+                "dependencies": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "rollback_checkpoint_hash": { "type": "string" }
+              },
+              "required": ["id", "name", "state"]
+            }
+          }
+        },
+        "required": ["dag_id", "nodes"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_update_goal_status",
+      "description": "Advances an Atlas 2.0 DAG node state upon verified completion, or triggers a rollback graph to a verified checkpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dag_id": {
+            "type": "string",
+            "description": "Goal DAG identifier."
+          },
+          "node_id": {
+            "type": "string",
+            "description": "Node identifier to update."
+          },
+          "target_state": {
+            "type": "string",
+            "enum": ["IN_PROGRESS", "COMPLETED", "FAILED", "ROLLBACK"]
+          },
+          "verification_receipt": {
+            "type": "string",
+            "description": "Cryptographic execution receipt or consensus ballot proof."
+          }
+        },
+        "required": ["dag_id", "node_id", "target_state"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "current_node_state": { "type": "string" },
+          "active_checkpoint": { "type": "string" }
+        },
+        "required": ["success", "current_node_state"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_declare_incident",
+      "description": "Declares an operational incident (SEV-1/SEV-2), automatically instantiating an OpsRoom war room and squad.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Incident summary."
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["SEV-1", "SEV-2", "SEV-3", "SEV-4"],
+            "description": "Incident severity tier."
+          },
+          "affected_services": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of impacted production services."
+          },
+          "initiator_did": {
+            "type": "string",
+            "description": "DID of the reporting agent or operator."
+          }
+        },
+        "required": ["title", "severity", "initiator_did"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "incident_id": { "type": "string" },
+          "ops_room_id": { "type": "string" },
+          "dag_id": { "type": "string" },
+          "declared_at": { "type": "string" }
+        },
+        "required": ["incident_id", "ops_room_id"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "acr_escalate_human_review",
+      "description": "Halts autonomous agent mutation and dispatches a fail-closed human approval request for high-risk operations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "description": "Action or proposal identifier requiring approval."
+          },
+          "risk_tier": {
+            "type": "string",
+            "enum": ["HIGH", "CRITICAL"],
+            "description": "Risk assessment level."
+          },
+          "justification": {
+            "type": "string",
+            "description": "Detailed justification and impact explanation for operator."
+          },
+          "action_hash": {
+            "type": "string",
+            "description": "SHA-256 hash of the exact execution payload."
+          }
+        },
+        "required": ["operation_id", "risk_tier", "justification", "action_hash"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "escalation_ticket_id": { "type": "string" },
+          "status": { "type": "string" },
+          "dispatched_to": { "type": "string" },
+          "escalated_at": { "type": "string" }
+        },
+        "required": ["escalation_ticket_id", "status"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

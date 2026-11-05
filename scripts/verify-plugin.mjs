@@ -91,8 +91,11 @@ assert(Boolean(openaiExt.review?.demo_recording_url), "demo_recording_url is pre
 const mcpPath = join(root, "mcp.json");
 assert(existsSync(mcpPath), "mcp.json exists");
 const mcp = JSON.parse(readFileSync(mcpPath, "utf-8"));
-assert(mcp.type === "streamable-http", "mcp.type is 'streamable-http'");
-assert(mcp.url === "https://mcp.agentchatrooms.dev/mcp", "mcp.url points to https://mcp.agentchatrooms.dev/mcp");
+const server = mcp.mcpServers.acr;
+assert(server.type === "streamable-http", "MCP server uses streamable-http");
+assert(server.url === "https://mcp.agentchatrooms.dev/mcp", "MCP server points to the remote gateway");
+assert(server.extensions?.["com.openai"]?.auth?.type === "oauth", "MCP server requires OAuth");
+const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"));
 
 const expectedTools = [
   "acr_list_rooms",
@@ -112,11 +115,11 @@ const expectedTools = [
   "acr_escalate_human_review",
 ];
 
-assert(Array.isArray(mcp.tools) && mcp.tools.length === 15, `mcp.tools has exactly 15 tools (got ${mcp.tools?.length})`);
+assert(Array.isArray(catalog.tools) && catalog.tools.length === 15, `tool catalog has exactly 15 tools (got ${catalog.tools?.length})`);
 
 for (const toolName of expectedTools) {
-  const tool = mcp.tools.find((t) => t.name === toolName);
-  assert(Boolean(tool), `Tool '${toolName}' is defined in mcp.json`);
+  const tool = catalog.tools.find((t) => t.name === toolName);
+  assert(Boolean(tool), `Tool '${toolName}' is defined in tool-catalog.json`);
   if (tool) {
     assert(Boolean(tool.description), `Tool '${toolName}' has description`);
     assert(Boolean(tool.inputSchema), `Tool '${toolName}' has inputSchema`);

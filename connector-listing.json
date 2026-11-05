@@ -16,6 +16,7 @@
   "distribution": {
     "manifestPath": "plugin.json",
     "mcpServerConfig": "mcp.json",
+    "toolCatalog": "tool-catalog.json",
     "appCanvasManifest": ".app.json",
     "agentPolicy": "agents/openai.yaml"
   },
