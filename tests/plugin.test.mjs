@@ -87,18 +87,36 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
     assert.ok(iface.shortDescription.length <= 30);
     assert.ok(iface.longDescription.length <= 4000);
     assert.ok(iface.developerName.length <= 80);
-    assert.equal(iface.category, "developer-tools");
+    assert.equal(iface.category, "Developer Tools");
     assert.ok(iface.capabilities.length <= 20);
     assert.equal(iface.brandColor, "#4A6FA5");
   });
 
-  it("satisfies submission review requirements", () => {
+  it("keeps draft review cases without inventing a demo recording", () => {
     const review = plugin.extensions["com.openai"].review;
     assert.equal(review.test_cases.positive.length, 5);
     assert.equal(review.test_cases.negative.length, 3);
     assert.equal(review.domain_verification.path, "/.well-known/openai-apps-challenge");
-    assert.ok(review.demo_recording_url.startsWith("https://"));
+    assert.equal(review.demo_recording_url, undefined);
     assert.equal(review.commerce, false);
+  });
+
+  it("keeps publisher facts consistent and avoids unsupported claims", () => {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
+    const listing = JSON.parse(readFileSync(join(root, "connector-listing.json"), "utf-8"));
+    const iface = plugin.extensions["com.openai"].interface;
+    assert.equal(plugin.description, pkg.description);
+    assert.equal(plugin.homepage, pkg.homepage);
+    assert.equal(plugin.license, pkg.license);
+    assert.equal(plugin.repository, pkg.repository.url.replace(/^git\+/, "").replace(/\.git$/, ""));
+    assert.equal(iface.developerName, plugin.author.name);
+    assert.equal(listing.vendor.name, plugin.author.name);
+    assert.equal(listing.vendor.email, plugin.author.email);
+    assert.equal(listing.vendor.website, plugin.homepage);
+    assert.equal(iface.websiteURL, plugin.homepage);
+    assert.equal(listing.category, iface.category);
+    assert.doesNotMatch(JSON.stringify(iface), /AAA|Astra|GPT-6|Runtime Protocol Tax|hardened/i);
+    assert.equal(listing.endpoints.domainVerification.token, plugin.extensions["com.openai"].review.domain_verification.token);
   });
 });
 

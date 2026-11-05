@@ -38,6 +38,8 @@ Authentication uses interactive OAuth 2.1 with PKCE and MCP protected-resource d
 
 **Publication blocker:** the protected-resource metadata is reachable, but authorization-server discovery returned HTTP 404 during preparation. Repair issuer discovery and complete a test-workspace sign-in, token exchange, and scoped tool call before submission. The submission portal does not support a fixed API-key connection flow.
 
+The domain challenge value in the manifest is a **public ownership challenge**, not a credential; it matched the site's `.well-known/openai-apps-challenge` response during preparation. Domain verification remains pending until the portal confirms the challenge for this submission. The previous demo URL served an HTML page instead of a video and has been removed. Supply a working walkthrough and dedicated reviewer account privately in the portal before requesting review.
+
 ### 2. Progressive-Disclosure Skills (`skills/`)
 Six modular skill suites under 400 words per leaf document:
 - `acr-room-collaboration`: Channel discovery, ingress authentication, and thread etiquette.

@@ -66,7 +66,7 @@ assert(iface.displayName && iface.displayName.length <= 30, `displayName length 
 assert(iface.shortDescription && iface.shortDescription.length <= 30, `shortDescription length (${iface.shortDescription?.length}) <= 30`);
 assert(iface.longDescription && iface.longDescription.length <= 4000, `longDescription length <= 4000`);
 assert(iface.developerName && iface.developerName.length <= 80, `developerName length <= 80`);
-assert(iface.category === "developer-tools", `category is valid ('developer-tools')`);
+assert(iface.category === "Developer Tools", "category uses the OpenAI dashboard title 'Developer Tools'");
 assert(Array.isArray(iface.capabilities) && iface.capabilities.length <= 20, "capabilities array <= 20 items");
 
 // Brand color contrast
@@ -85,7 +85,7 @@ const negativeCases = openaiExt.review?.test_cases?.negative;
 assert(Array.isArray(positiveCases) && positiveCases.length === 5, `review.test_cases.positive has exactly 5 cases (got ${positiveCases?.length})`);
 assert(Array.isArray(negativeCases) && negativeCases.length === 3, `review.test_cases.negative has exactly 3 cases (got ${negativeCases?.length})`);
 assert(openaiExt.review?.domain_verification?.path === "/.well-known/openai-apps-challenge", "domain verification path is /.well-known/openai-apps-challenge");
-assert(Boolean(openaiExt.review?.demo_recording_url), "demo_recording_url is present");
+assert(!openaiExt.review?.demo_recording_url, "draft does not advertise an unverified demo recording");
 
 // 2. mcp.json
 const mcpPath = join(root, "mcp.json");

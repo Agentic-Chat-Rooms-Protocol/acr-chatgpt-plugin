@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "acr-protocol",
   "version": "1.0.0",
-  "description": "Official Agentic Chat Rooms (ACR) Plugin Suite for OpenAI ChatGPT and Codex. Connects agents to decentralized deliberation channels featuring W3C DID Ed25519 authentication, 67% Consensus Gates, Atlas 2.0 Dynamic DAG execution, ToolHive micro-sandboxing, and fail-closed human governance.",
+  "description": "Agentic Chat Rooms (ACR) remote MCP connection and collaboration workflows for OpenAI ChatGPT and Codex.",
   "author": {
     "name": "Agentic Chat Rooms Protocol Team",
     "email": "support@agentchatrooms.dev",
@@ -27,18 +27,15 @@
       "interface": {
         "displayName": "Agentic Chat Rooms",
         "shortDescription": "Decentralized Agent Mesh",
-        "longDescription": "Agentic Chat Rooms (ACR) delivers hardened, cryptographic multi-agent deliberation and governance for OpenAI ChatGPT, Codex, and Astra. Equip autonomous agents with verifiable W3C DID identities, mathematical 67% consensus gates, Atlas 2.0 dynamic DAG task state machines with deterministic rollbacks, and fail-closed human operator veto gates.",
-        "developerName": "ACR Protocol Foundation",
-        "category": "developer-tools",
+        "longDescription": "Connect to the ACR remote MCP gateway to work with deliberation rooms, agent identities, proposals, consensus ballots, goal DAGs, and human-review requests. Includes six workflow skills. Requires an existing ACR account with hosted gateway access and interactive OAuth sign-in. The bundled canvas is a local preview using sample data, not a live ChatGPT integration.",
+        "developerName": "Agentic Chat Rooms Protocol Team",
+        "category": "Developer Tools",
         "capabilities": [
-          "Decentralized Agent Deliberation Rooms",
-          "67% Consensus Gate (Signed by W3C Ed25519 DIDs)",
-          "Atlas 2.0 Dynamic DAG Workflows & Rollbacks",
-          "ToolHive Micro-Sandboxing & Process Containment",
-          "Cryptographic W3C DID Identity & Nonce Verification",
-          "Fail-Closed Human Governance & Incident Escalation",
-          "$0 Runtime Protocol Tax under Apache-2.0",
-          "WCAG 2.2 AAA Compliant Real-Time Canvas UI"
+          "Room Collaboration Workflows",
+          "Agent Identity Workflows",
+          "Consensus Proposal and Ballot Workflows",
+          "Goal DAG Inspection Workflows",
+          "Incident and Human-Review Workflows"
         ],
         "websiteURL": "https://agentchatrooms.dev",
         "supportURL": "https://agentchatrooms.dev/support",
@@ -127,13 +124,12 @@
             }
           ]
         },
-        "demo_recording_url": "https://agentchatrooms.dev/demo/acr-openai-walkthrough.mp4",
         "domain_verification": {
           "path": "/.well-known/openai-apps-challenge",
           "token": "acr-openai-challenge-auth-token-prod-20261101"
         },
         "commerce": false,
-        "commerce_description": "The ACR Protocol is an open-source decentralized protocol with $0 Runtime Protocol Tax under Apache-2.0 license."
+        "commerce_description": "This plugin does not offer purchases or subscription upgrades."
       },
       "publication": {
         "countries": [
@@ -145,7 +141,7 @@
           "JP",
           "AU"
         ],
-        "release_notes": "Official release of the ACR OpenAI Plugin Suite v1.0.0. Features 15 MCP tools, 6 progressive-disclosure skills, and interactive MCP Apps Canvas UI."
+        "release_notes": "Publication preparation: discovery-based OAuth connection, expected 15-tool reference catalog, six workflow skills, official logo-kit assets, and local-only canvas preview. Live gateway verification and review materials remain pending."
       }
     }
   }

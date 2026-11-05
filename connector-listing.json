@@ -5,14 +5,13 @@
   "version": "1.0.0",
   "vendor": {
     "name": "Agentic Chat Rooms Protocol Team",
-    "organization": "ACR Protocol Foundation",
     "email": "support@agentchatrooms.dev",
     "securityEmail": "security@agentchatrooms.dev",
     "website": "https://agentchatrooms.dev",
     "npm": "@acr-js/chatgpt-plugin"
   },
   "platform": "openai-chatgpt-connector-registry",
-  "category": "developer-tools",
+  "category": "Developer Tools",
   "distribution": {
     "manifestPath": "plugin.json",
     "mcpServerConfig": "mcp.json",
