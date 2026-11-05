@@ -49,8 +49,10 @@ Six modular skill suites under 400 words per leaf document:
 - `acr-opsroom-incident`: Priority incident triage (SEV-1/SEV-2) and war room squad mobilization.
 - `acr-human-governance`: Fail-closed escalation gates and cryptographic operator approval tickets.
 
-### 3. Interactive Canvas UI (`.app.json` & `web-ui/canvas-app.html`)
-Adheres to the open MCP Apps UI standard (`text/html;profile=mcp-app`), rendering real-time consensus gauges, DAG node rollback states, and audit streams directly within ChatGPT's visual canvas. Complies with WCAG 2.2 AAA accessibility standards.
+### 3. Local Canvas Preview (`.app.json` & `web-ui/canvas-app.html`)
+Open `web-ui/canvas-app.html` locally to inspect sample consensus, DAG, and room-history views. Ballot previews require a non-empty DISSENT rationale and never dispatch a vote or claim success against the gateway. The page uses a restrictive CSP, an external script, text-only rendering of input, and keyboard-operable tabs. It has not been certified for WCAG conformance.
+
+`.app.json` is local preview metadata, not OpenAI's registered-app mapping. It deliberately declares no bindings or real-time capability and is not referenced by `extensions.com.openai.apps`. The remote gateway must register and serve a real MCP Apps resource with `_meta.ui.resourceUri`, host bridge initialization, and resource CSP metadata before this becomes a ChatGPT UI. All future live data and actions must go through the host bridge, not direct network calls. See [OpenAI's MCP Apps UI guide](https://developers.openai.com/plugins/build/chatgpt-ui).
 
 ### 4. Agent Metadata & Policy (`agents/openai.yaml`)
 Declares ChatGPT and Codex compatibility, interface styling (brand color `#4A6FA5`), and tool dependencies over Streamable HTTP (`https://mcp.agentchatrooms.dev/mcp`).

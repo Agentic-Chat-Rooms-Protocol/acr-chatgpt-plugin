@@ -1,23 +1,16 @@
 {
-  "$schema": "https://modelcontextprotocol.io/schemas/app-v1.json",
   "id": "acr-canvas-inspector",
-  "name": "ACR Consensus & Atlas DAG Inspector",
+  "name": "ACR Consensus & Atlas DAG Inspector (Local Preview)",
   "version": "1.0.0",
   "entrypoint": "web-ui/canvas-app.html",
   "mimeType": "text/html;profile=mcp-app",
-  "description": "Interactive real-time visual canvas for ChatGPT to inspect ACR deliberation rooms, review and cast 67% consensus ballots, and track Atlas 2.0 dynamic DAG task rollbacks.",
+  "description": "Local preview of consensus ballots, a goal DAG, and room history using sample data. No live data, verified identities, host tool bindings, or dispatched votes.",
   "capabilities": {
     "rendering": [
       "canvas",
       "inline"
     ],
-    "realtime": true
+    "realtime": false
   },
-  "bindings": {
-    "onVoteCast": "acr_cast_vote",
-    "onNodeSelect": "acr_update_goal_status",
-    "onProposeAction": "acr_propose_action",
-    "onEscalateHuman": "acr_escalate_human_review",
-    "onInspectState": "acr_get_consensus_state"
-  }
+  "bindings": {}
 }

@@ -184,7 +184,23 @@ describe("Interactive MCP Apps Canvas (.app.json)", () => {
     assert.equal(app.mimeType, "text/html;profile=mcp-app");
     assert.ok(existsSync(join(root, app.entrypoint)));
     assert.ok(app.capabilities.rendering.includes("canvas"));
-    assert.equal(app.capabilities.realtime, true);
+    assert.equal(app.capabilities.realtime, false);
+    assert.match(app.description, /local preview/i);
+    assert.deepEqual(app.bindings, {});
+  });
+
+  it("restricts scripts, connections and forms and contains no unsafe rendering", () => {
+    const html = readFileSync(join(root, app.entrypoint), "utf-8");
+    const script = readFileSync(join(root, "web-ui", "canvas-app.js"), "utf-8");
+    assert.match(html, /http-equiv="Content-Security-Policy"/);
+    assert.match(html, /default-src 'none'/);
+    assert.match(html, /script-src 'self';/);
+    assert.match(html, /connect-src 'none'/);
+    assert.match(html, /form-action 'none'/);
+    assert.match(html, /<script src="\.\/canvas-app\.js" defer><\/script>/);
+    assert.doesNotMatch(html, /<script(?:\s[^>]*)?>(?!<\/script>)/);
+    assert.doesNotMatch(`${html}\n${script}`, /\b(?:alert|prompt|eval|fetch|XMLHttpRequest|WebSocket)\s*\(|innerHTML|outerHTML|insertAdjacentHTML|\bon\w+\s*=/);
+    assert.ok(html.indexOf("Content-Security-Policy") < html.indexOf("<style>"));
   });
 });
 

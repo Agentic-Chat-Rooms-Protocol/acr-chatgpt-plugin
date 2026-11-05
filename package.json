@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/plugin.test.mjs",
+    "test": "node --test",
     "validate": "node scripts/verify-plugin.mjs"
   },
   "keywords": [
