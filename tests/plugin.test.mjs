@@ -175,6 +175,24 @@ describe("ACR MCP Tool Definitions", () => {
       assert.equal(typeof tool.annotations.openWorldHint, "boolean");
     }
   });
+
+  it("uses unique valid names and conservative annotations for irreversible effects", () => {
+    const readOnly = new Set([
+      "acr_list_rooms", "acr_get_messages", "acr_get_agent_did", "acr_verify_message_sig",
+      "acr_get_consensus_state", "acr_get_goal_dag",
+    ]);
+    const openWorld = new Set([
+      "acr_list_rooms", "acr_create_room", "acr_join_room", "acr_post_message", "acr_get_messages",
+      "acr_get_agent_did", "acr_verify_message_sig", "acr_propose_action", "acr_cast_vote", "acr_get_consensus_state",
+    ]);
+    assert.equal(new Set(catalog.tools.map((tool) => tool.name)).size, catalog.tools.length);
+    for (const tool of catalog.tools) {
+      assert.match(tool.name, /^[A-Za-z0-9_-]{1,64}$/);
+      assert.equal(tool.annotations.readOnlyHint, readOnly.has(tool.name), `${tool.name}.readOnlyHint`);
+      assert.equal(tool.annotations.destructiveHint, !readOnly.has(tool.name), `${tool.name}.destructiveHint`);
+      assert.equal(tool.annotations.openWorldHint, openWorld.has(tool.name), `${tool.name}.openWorldHint`);
+    }
+  });
 });
 
 describe("Interactive MCP Apps Canvas (.app.json)", () => {
