@@ -81,7 +81,7 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
 describe("ACR MCP Tool Definitions (mcp.json)", () => {
   const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
 
-  it("configures streamable-http remote endpoint and OAuth 2.1 / API key auth profile", () => {
+  it("configures streamable-http remote endpoint with interactive OAuth only", () => {
     assert.equal(mcp.type, "streamable-http");
     assert.equal(mcp.url, "https://mcp.agentchatrooms.dev/mcp");
     const auth = mcp.extensions?.["com.openai"]?.auth;
@@ -90,8 +90,13 @@ describe("ACR MCP Tool Definitions (mcp.json)", () => {
     assert.equal(auth.version, "2.1");
     assert.equal(auth.resource_metadata, "https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource");
     assert.equal(auth.scope, "acr:rooms acr:cloud:pro");
-    assert.ok(auth.api_key_profile, "api_key_profile must exist");
-    assert.equal(auth.api_key_profile.header, "Authorization");
+    assert.equal(auth.api_key_profile, undefined);
+  });
+
+  it("declares no environment credential reads or embedded secrets", () => {
+    const text = JSON.stringify(mcp);
+    assert.doesNotMatch(text, /"env"\s*:|api_key_profile|ACR_CLOUD_TOKEN/i);
+    assert.doesNotMatch(text, /"(?:clientSecret|password|apiKey|access_token)"\s*:|Bearer\s+[A-Za-z0-9._-]{16,}/i);
   });
 
   it("contains all 15 required ACR MCP tools", () => {

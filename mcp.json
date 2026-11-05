@@ -17,13 +17,7 @@
         "authorization_servers": [
           "https://auth.agentchatrooms.dev",
           "https://mcp.agentchatrooms.dev/oauth"
-        ],
-        "api_key_profile": {
-          "header": "Authorization",
-          "prefix": "Bearer",
-          "env": "ACR_CLOUD_TOKEN",
-          "description": "ACR Cloud Pro or Enterprise API bearer token for non-interactive / autonomous agent execution."
-        }
+        ]
       }
     }
   },
