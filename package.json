@@ -6,8 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test tests/plugin.test.mjs",
-    "validate": "node scripts/verify-plugin.mjs",
-    "bundle": "node scripts/bundle-submission.mjs"
+    "validate": "node scripts/verify-plugin.mjs"
   },
   "keywords": [
     "chatgpt-plugin",

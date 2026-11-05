@@ -3,9 +3,23 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
+
+describe("Source package hygiene", () => {
+  it("tracks no build archives or publication receipts", () => {
+    const files = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf-8" }).split("\0").filter(Boolean);
+    for (const file of files) {
+      assert.doesNotMatch(file, /(^dist\/|\.(zip|tgz|gz)$|receipt)/i);
+    }
+    assert.match(readFileSync(join(root, ".gitignore"), "utf-8"), /^dist\/\r?$/m);
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
+    assert.equal(pkg.scripts.bundle, undefined);
+    assert.ok(!existsSync(join(root, "scripts", "bundle-submission.mjs")));
+  });
+});
 
 describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
   const plugin = JSON.parse(readFileSync(join(root, "plugin.json"), "utf-8"));
