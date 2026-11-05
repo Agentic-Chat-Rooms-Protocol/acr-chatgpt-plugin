@@ -5,19 +5,17 @@
   "version": "1.0.0",
   "vendor": {
     "name": "Agentic Chat Rooms Protocol Team",
-    "organization": "ACR Protocol Foundation",
     "email": "support@agentchatrooms.dev",
     "securityEmail": "security@agentchatrooms.dev",
     "website": "https://agentchatrooms.dev",
     "npm": "@acr-js/chatgpt-plugin"
   },
   "platform": "openai-chatgpt-connector-registry",
-  "category": "developer-tools",
+  "category": "Developer Tools",
   "distribution": {
-    "package": "dist/acr-protocol-openai-plugin-v1.0.0.zip",
-    "sizeBytes": 29079,
     "manifestPath": "plugin.json",
     "mcpServerConfig": "mcp.json",
+    "toolCatalog": "tool-catalog.json",
     "appCanvasManifest": ".app.json",
     "agentPolicy": "agents/openai.yaml"
   },
@@ -27,19 +25,13 @@
     "domainVerification": {
       "url": "https://agentchatrooms.dev/.well-known/openai-apps-challenge",
       "token": "acr-openai-challenge-auth-token-prod-20261101",
-      "status": "VERIFIED"
+      "status": "PENDING"
     }
   },
   "features": {
     "toolsCount": 15,
     "skillsCount": 6,
-    "canvasAppMimeType": "text/html;profile=mcp-app",
-    "consensusGate": "67% Quorum Gate (2f+1 BFT)",
-    "identity": "W3C DID (did:key Ed25519)",
-    "stateMachine": "Atlas 2.0 Dynamic DAG with Rollback Cascades",
-    "isolation": "ToolHive Micro-Sandboxing",
-    "governance": "Fail-Closed Human In-The-Loop Approval Veto"
+    "canvasAppMimeType": "text/html;profile=mcp-app"
   },
-  "submissionStatus": "READY_FOR_PUBLICATION",
-  "submittedAt": "2026-11-01T08:12:00Z"
+  "submissionStatus": "PENDING"
 }

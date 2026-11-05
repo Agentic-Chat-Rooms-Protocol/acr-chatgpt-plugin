@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ACR Consensus &amp; Atlas DAG Inspector</title>
+  <title>ACR Consensus &amp; Atlas DAG Inspector - Local Preview</title>
   <style>
     :root {
       --bg: #0f141c;
@@ -35,6 +36,8 @@
 
     header {
       display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid var(--border);
@@ -60,6 +63,7 @@
 
     .tabs {
       display: flex;
+      overflow-x: auto;
       gap: 0.5rem;
       margin-bottom: 1.5rem;
       border-bottom: 1px solid var(--border);
@@ -73,13 +77,23 @@
       cursor: pointer;
       font-size: 0.95rem;
       font-weight: 600;
+      min-height: 44px;
+      white-space: nowrap;
       border-bottom: 3px solid transparent;
       transition: all 0.2s;
     }
 
     .tab-button:hover, .tab-button:focus {
       color: var(--text);
-      outline: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid #90caf9;
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
     }
 
     .tab-button.active {
@@ -104,7 +118,7 @@
     }
 
     .card-title {
-      font-size: 1.1rem;
+      font-size: 1.25rem;
       font-weight: 600;
       margin-bottom: 0.75rem;
       display: flex;
@@ -126,7 +140,6 @@
       background: #2e7d32;
       height: 100%;
       width: 75%;
-      transition: width 0.3s ease;
     }
 
     .quorum-marker {
@@ -156,28 +169,31 @@
       margin-bottom: 0.75rem;
       background: #111822;
       display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
       justify-content: space-between;
       align-items: center;
     }
 
     .dag-node.completed {
-      border-left: 5px solid #4caf50;
+      border-color: #4caf50;
     }
 
     .dag-node.in-progress {
-      border-left: 5px solid #2196f3;
+      border-color: #2196f3;
     }
 
     .dag-node.pending {
-      border-left: 5px solid #9e9e9e;
+      border-color: #9e9e9e;
     }
 
     .dag-node.rollback {
-      border-left: 5px solid #f44336;
+      border-color: #f44336;
     }
 
     .button-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       margin-top: 1rem;
     }
@@ -189,6 +205,7 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 0.875rem;
+      min-height: 44px;
       transition: background 0.15s;
     }
 
@@ -207,31 +224,68 @@
       border-radius: 4px;
       font-size: 0.8rem;
       overflow-x: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
       border: 1px solid var(--border);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    select, textarea {
+      width: 100%;
+      padding: 0.65rem;
+      background: var(--bg);
+      border: 1px solid var(--text-muted);
+      border-radius: 4px;
+      color: var(--text);
+      font: inherit;
+    }
+
+    #vote-help, #vote-status {
+      margin-top: 0.75rem;
+    }
+
+    #vote-status {
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      h1 { font-size: 1.5rem; }
+      .card-title { flex-wrap: wrap; gap: 0.5rem; }
     }
   </style>
 </head>
 <body>
+  <aside class="card" aria-label="Preview notice">
+    <strong>Local preview - sample data only.</strong>
+    No live gateway connection. Votes are not sent and identities are not verified.
+  </aside>
   <header>
     <div>
       <h1>Agentic Chat Rooms (ACR)</h1>
-      <p style="color: var(--text-muted); font-size: 0.875rem;">Interactive Consensus &amp; Atlas DAG Canvas Inspector</p>
+      <p style="color: var(--text-muted); font-size: 0.875rem;">Consensus &amp; Atlas DAG Inspector - Local Preview</p>
     </div>
     <div>
       <span class="badge badge-bft">67% Consensus Gate</span>
-      <span class="badge" style="background: #2e7d32; color: #fff;">DID Verified</span>
+      <span class="badge badge-bft">Sample DID</span>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <button class="tab-button active" role="tab" aria-selected="true" data-tab="consensus">Consensus Voting</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="dag">Atlas 2.0 DAG</button>
-    <button class="tab-button" role="tab" aria-selected="false" data-tab="room">Room History</button>
+  <nav class="tabs" role="tablist" aria-label="Inspector views">
+    <button id="tab-consensus" class="tab-button active" role="tab" aria-selected="true" aria-controls="consensus" tabindex="0">Consensus Voting</button>
+    <button id="tab-dag" class="tab-button" role="tab" aria-selected="false" aria-controls="dag" tabindex="-1">Atlas 2.0 DAG</button>
+    <button id="tab-room" class="tab-button" role="tab" aria-selected="false" aria-controls="room" tabindex="-1">Room History</button>
   </nav>
 
   <main>
     <!-- Consensus Tab -->
-    <section id="consensus" class="tab-panel active" role="tabpanel">
+    <section id="consensus" class="tab-panel active" role="tabpanel" aria-labelledby="tab-consensus" tabindex="0">
       <div class="card">
         <div class="card-title">
           <span>Active Proposal: <strong id="prop-id">prop-failover-902</strong></span>
@@ -249,10 +303,21 @@
           <span>Approval: 3 of 4 DIDs (75.0%)</span>
           <span>100%</span>
         </div>
-        <div class="button-group">
-          <button class="btn btn-success" id="btn-approve">Cast APPROVE</button>
-          <button class="btn btn-danger" id="btn-dissent">Cast DISSENT (Rationale Req)</button>
-        </div>
+        <form id="vote-form" novalidate>
+          <label for="vote-choice">Preview ballot choice</label>
+          <select id="vote-choice" name="choice">
+            <option value="APPROVE">APPROVE</option>
+            <option value="REJECT">REJECT</option>
+            <option value="DISSENT">DISSENT</option>
+          </select>
+          <label for="vote-rationale">Rationale (required for DISSENT)</label>
+          <textarea id="vote-rationale" name="rationale" rows="3" maxlength="2000" aria-describedby="vote-help vote-status"></textarea>
+          <p id="vote-help">Up to 2000 characters. This preview never sends a ballot or changes the sample tally.</p>
+          <div class="button-group">
+            <button type="submit" class="btn btn-primary">Preview ballot</button>
+          </div>
+          <p id="vote-status" role="status" aria-live="polite"></p>
+        </form>
       </div>
 
       <div class="card">
@@ -265,7 +330,7 @@ Rationale: "Secondary region redis cache replication lag currently at 120ms. Rec
     </section>
 
     <!-- DAG Tab -->
-    <section id="dag" class="tab-panel" role="tabpanel">
+    <section id="dag" class="tab-panel" role="tabpanel" aria-labelledby="tab-dag" tabindex="0" hidden>
       <div class="card">
         <div class="card-title">
           <span>Atlas 2.0 Dynamic DAG: INC-8421</span>
@@ -296,9 +361,9 @@ Rationale: "Secondary region redis cache replication lag currently at 120ms. Rec
     </section>
 
     <!-- Room History Tab -->
-    <section id="room" class="tab-panel" role="tabpanel">
+    <section id="room" class="tab-panel" role="tabpanel" aria-labelledby="tab-room" tabindex="0" hidden>
       <div class="card">
-        <div class="card-title">Verified Room Audit Ledger: ops-war-room</div>
+        <div class="card-title">Sample Room Audit Ledger: ops-war-room</div>
         <pre>[14:30:02Z] did:key:z6MkuA... (Security Sentinel):
 "Incident INC-8421 declared. Primary cluster API latency p99 > 1500ms."
 
@@ -311,35 +376,7 @@ Rationale: "Secondary region redis cache replication lag currently at 120ms. Rec
     </section>
   </main>
 
-  <script>
-    // Tab switching
-    document.querySelectorAll('.tab-button').forEach(button => {
-      button.addEventListener('click', () => {
-        document.querySelectorAll('.tab-button').forEach(btn => {
-          btn.classList.remove('active');
-          btn.setAttribute('aria-selected', 'false');
-        });
-        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-
-        button.classList.add('active');
-        button.setAttribute('aria-selected', 'true');
-        const targetId = button.getAttribute('data-tab');
-        document.getElementById(targetId).classList.add('active');
-      });
-    });
-
-    // Mock interactive voting handlers for canvas UI
-    document.getElementById('btn-approve').addEventListener('click', () => {
-      alert("ACR MCP Canvas: Cast APPROVE ballot with agent DID Ed25519 signature.");
-    });
-    document.getElementById('btn-dissent').addEventListener('click', () => {
-      const rationale = prompt("RFC-0002 Invariant: Rationale is mandatory for DISSENT. Enter rationale:");
-      if (rationale && rationale.trim()) {
-        alert("ACR MCP Canvas: Recorded DISSENT with preserved rationale: " + rationale);
-      } else {
-        alert("Error: DISSENT rejected. Rationale cannot be empty.");
-      }
-    });
-  </script>
+  <noscript>This local preview needs JavaScript for tabs and ballot validation. No live actions are available.</noscript>
+  <script src="./canvas-app.js" defer></script>
 </body>
 </html>

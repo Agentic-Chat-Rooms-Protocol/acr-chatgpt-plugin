@@ -1,13 +1,11 @@
 {
   "name": "@acr-js/chatgpt-plugin",
   "version": "1.0.0",
-  "description": "Official Agentic Chat Rooms (ACR) plugin suite for OpenAI ChatGPT, Codex, and GPT-6 Astra models",
+  "description": "Agentic Chat Rooms (ACR) remote MCP connection and collaboration workflows for OpenAI ChatGPT and Codex.",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "test": "node --test tests/plugin.test.mjs",
-    "validate": "node scripts/verify-plugin.mjs",
-    "bundle": "node scripts/bundle-submission.mjs"
+    "test": "node --test",
+    "validate": "node scripts/verify-plugin.mjs"
   },
   "keywords": [
     "chatgpt-plugin",

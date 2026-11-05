@@ -18,14 +18,14 @@ function assert(condition, message) {
 
 function wordCount(text) {
   // Strip YAML frontmatter for leaf body word count
-  const body = text.replace(/^---[\s\S]*?---\s*/, "");
+  const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\s*/, "");
   return body.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function relativeLuminance(rgb) {
   const [r, g, b] = [rgb.r, rgb.g, rgb.b].map((v) => {
     const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
@@ -46,7 +46,7 @@ function contrastRatio(hex1, hex2) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-console.log("=== ACR OpenAI Plugin Verification Suite ===");
+console.log("=== ACR OpenAI Plugin Local Verification Suite ===");
 
 // 1. plugin.json
 const pluginPath = join(root, "plugin.json");
@@ -66,18 +66,20 @@ assert(iface.displayName && iface.displayName.length <= 30, `displayName length 
 assert(iface.shortDescription && iface.shortDescription.length <= 30, `shortDescription length (${iface.shortDescription?.length}) <= 30`);
 assert(iface.longDescription && iface.longDescription.length <= 4000, `longDescription length <= 4000`);
 assert(iface.developerName && iface.developerName.length <= 80, `developerName length <= 80`);
-assert(iface.category === "developer-tools", `category is valid ('developer-tools')`);
+assert(iface.category === "Developer Tools", "category uses the OpenAI dashboard title 'Developer Tools'");
 assert(Array.isArray(iface.capabilities) && iface.capabilities.length <= 20, "capabilities array <= 20 items");
 
 // Brand color contrast
 const lightRatio = contrastRatio(iface.brandColor, "#FFFFFF");
-const darkRatio = contrastRatio(iface.brandColor, "#212121");
+const darkRatio = contrastRatio(iface.brandColorDark, "#212121");
 assert(lightRatio >= 2.0, `brandColor contrast against white (${lightRatio.toFixed(2)}) >= 2.0`);
-assert(darkRatio >= 2.0, `brandColor contrast against #212121 (${darkRatio.toFixed(2)}) >= 2.0`);
+assert(darkRatio >= 2.0, `brandColorDark contrast against #212121 (${darkRatio.toFixed(2)}) >= 2.0`);
 
 // Images
 assert(existsSync(join(root, iface.composerIcon)), `composerIcon exists (${iface.composerIcon})`);
 assert(existsSync(join(root, iface.logo)), `logo exists (${iface.logo})`);
+assert(existsSync(join(root, iface.composerIconDark)), `composerIconDark exists (${iface.composerIconDark})`);
+assert(existsSync(join(root, iface.logoDark)), `logoDark exists (${iface.logoDark})`);
 
 // Review test cases
 const positiveCases = openaiExt.review?.test_cases?.positive;
@@ -85,14 +87,17 @@ const negativeCases = openaiExt.review?.test_cases?.negative;
 assert(Array.isArray(positiveCases) && positiveCases.length === 5, `review.test_cases.positive has exactly 5 cases (got ${positiveCases?.length})`);
 assert(Array.isArray(negativeCases) && negativeCases.length === 3, `review.test_cases.negative has exactly 3 cases (got ${negativeCases?.length})`);
 assert(openaiExt.review?.domain_verification?.path === "/.well-known/openai-apps-challenge", "domain verification path is /.well-known/openai-apps-challenge");
-assert(Boolean(openaiExt.review?.demo_recording_url), "demo_recording_url is present");
+assert(!openaiExt.review?.demo_recording_url, "draft does not advertise an unverified demo recording");
 
 // 2. mcp.json
 const mcpPath = join(root, "mcp.json");
 assert(existsSync(mcpPath), "mcp.json exists");
 const mcp = JSON.parse(readFileSync(mcpPath, "utf-8"));
-assert(mcp.type === "streamable-http", "mcp.type is 'streamable-http'");
-assert(mcp.url === "https://mcp.agentchatrooms.dev/mcp", "mcp.url points to https://mcp.agentchatrooms.dev/mcp");
+const server = mcp.mcpServers.acr;
+assert(server.type === "streamable-http", "MCP server uses streamable-http");
+assert(server.url === "https://mcp.agentchatrooms.dev/mcp", "MCP server points to the remote gateway");
+assert(server.extensions?.["com.openai"]?.auth?.type === "oauth", "MCP server requires OAuth");
+const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"));
 
 const expectedTools = [
   "acr_list_rooms",
@@ -112,11 +117,11 @@ const expectedTools = [
   "acr_escalate_human_review",
 ];
 
-assert(Array.isArray(mcp.tools) && mcp.tools.length === 15, `mcp.tools has exactly 15 tools (got ${mcp.tools?.length})`);
+assert(Array.isArray(catalog.tools) && catalog.tools.length === 15, `tool catalog has exactly 15 tools (got ${catalog.tools?.length})`);
 
 for (const toolName of expectedTools) {
-  const tool = mcp.tools.find((t) => t.name === toolName);
-  assert(Boolean(tool), `Tool '${toolName}' is defined in mcp.json`);
+  const tool = catalog.tools.find((t) => t.name === toolName);
+  assert(Boolean(tool), `Tool '${toolName}' is defined in tool-catalog.json`);
   if (tool) {
     assert(Boolean(tool.description), `Tool '${toolName}' has description`);
     assert(Boolean(tool.inputSchema), `Tool '${toolName}' has inputSchema`);
@@ -159,7 +164,7 @@ for (const skillName of expectedSkills) {
   assert(existsSync(skillFile), `Skill file exists: skills/${skillName}/SKILL.md`);
   if (existsSync(skillFile)) {
     const content = readFileSync(skillFile, "utf-8");
-    assert(content.startsWith("---\n"), `Skill ${skillName} has YAML frontmatter header`);
+    assert(/^---\r?\n/.test(content), `Skill ${skillName} has YAML frontmatter header`);
     assert(content.includes(`name: ${skillName}`), `Skill ${skillName} frontmatter defines correct name`);
     assert(content.includes("description:"), `Skill ${skillName} frontmatter defines description`);
     assert(content.includes("Do NOT"), `Skill ${skillName} contains explicit negative constraints`);
@@ -178,7 +183,8 @@ for (const f of allFiles) {
 
 console.log("\n==========================================");
 if (errorCount === 0) {
-  console.log("ALL VERIFICATION CHECKS PASSED SUCCESSFULLY!");
+  console.log("ALL LOCAL VERIFICATION CHECKS PASSED.");
+  console.log("Gateway behavior, OAuth sign-in, and OpenAI submission acceptance still require external verification.");
   process.exit(0);
 } else {
   console.error(`VERIFICATION FAILED: ${errorCount} error(s) found.`);
