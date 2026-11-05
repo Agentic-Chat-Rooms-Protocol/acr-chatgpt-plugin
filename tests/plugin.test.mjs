@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -18,6 +18,30 @@ describe("Source package hygiene", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
     assert.equal(pkg.scripts.bundle, undefined);
     assert.ok(!existsSync(join(root, "scripts", "bundle-submission.mjs")));
+  });
+});
+
+describe("Connector listing", () => {
+  const listing = JSON.parse(readFileSync(join(root, "connector-listing.json"), "utf-8"));
+
+  it("keeps registry and domain confirmation pending", () => {
+    assert.equal(listing.submissionStatus, "PENDING");
+    assert.equal(listing.endpoints.domainVerification.status, "PENDING");
+    assert.equal(listing.submittedAt, undefined);
+    assert.doesNotMatch(JSON.stringify(listing), /VERIFIED|PUBLISHED|sizeBytes|"package"/);
+  });
+
+  it("references existing files and derives inventory counts from the tree", () => {
+    for (const path of Object.values(listing.distribution)) {
+      assert.ok(existsSync(join(root, path)), `${path} must exist`);
+    }
+    const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8"));
+    const app = JSON.parse(readFileSync(join(root, ".app.json"), "utf-8"));
+    const skills = readdirSync(join(root, "skills")).filter((name) => existsSync(join(root, "skills", name, "SKILL.md")));
+    assert.equal(listing.features.toolsCount, mcp.tools.length);
+    assert.equal(listing.features.skillsCount, skills.length);
+    assert.equal(listing.features.canvasAppMimeType, app.mimeType);
+    assert.equal(listing.endpoints.mcpGateway, mcp.url);
   });
 });
 
