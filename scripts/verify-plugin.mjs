@@ -18,14 +18,14 @@ function assert(condition, message) {
 
 function wordCount(text) {
   // Strip YAML frontmatter for leaf body word count
-  const body = text.replace(/^---[\s\S]*?---\s*/, "");
+  const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\s*/, "");
   return body.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function relativeLuminance(rgb) {
   const [r, g, b] = [rgb.r, rgb.g, rgb.b].map((v) => {
     const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
@@ -46,7 +46,7 @@ function contrastRatio(hex1, hex2) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-console.log("=== ACR OpenAI Plugin Verification Suite ===");
+console.log("=== ACR OpenAI Plugin Local Verification Suite ===");
 
 // 1. plugin.json
 const pluginPath = join(root, "plugin.json");
@@ -71,13 +71,15 @@ assert(Array.isArray(iface.capabilities) && iface.capabilities.length <= 20, "ca
 
 // Brand color contrast
 const lightRatio = contrastRatio(iface.brandColor, "#FFFFFF");
-const darkRatio = contrastRatio(iface.brandColor, "#212121");
+const darkRatio = contrastRatio(iface.brandColorDark, "#212121");
 assert(lightRatio >= 2.0, `brandColor contrast against white (${lightRatio.toFixed(2)}) >= 2.0`);
-assert(darkRatio >= 2.0, `brandColor contrast against #212121 (${darkRatio.toFixed(2)}) >= 2.0`);
+assert(darkRatio >= 2.0, `brandColorDark contrast against #212121 (${darkRatio.toFixed(2)}) >= 2.0`);
 
 // Images
 assert(existsSync(join(root, iface.composerIcon)), `composerIcon exists (${iface.composerIcon})`);
 assert(existsSync(join(root, iface.logo)), `logo exists (${iface.logo})`);
+assert(existsSync(join(root, iface.composerIconDark)), `composerIconDark exists (${iface.composerIconDark})`);
+assert(existsSync(join(root, iface.logoDark)), `logoDark exists (${iface.logoDark})`);
 
 // Review test cases
 const positiveCases = openaiExt.review?.test_cases?.positive;
@@ -162,7 +164,7 @@ for (const skillName of expectedSkills) {
   assert(existsSync(skillFile), `Skill file exists: skills/${skillName}/SKILL.md`);
   if (existsSync(skillFile)) {
     const content = readFileSync(skillFile, "utf-8");
-    assert(content.startsWith("---\n"), `Skill ${skillName} has YAML frontmatter header`);
+    assert(/^---\r?\n/.test(content), `Skill ${skillName} has YAML frontmatter header`);
     assert(content.includes(`name: ${skillName}`), `Skill ${skillName} frontmatter defines correct name`);
     assert(content.includes("description:"), `Skill ${skillName} frontmatter defines description`);
     assert(content.includes("Do NOT"), `Skill ${skillName} contains explicit negative constraints`);
@@ -181,7 +183,8 @@ for (const f of allFiles) {
 
 console.log("\n==========================================");
 if (errorCount === 0) {
-  console.log("ALL VERIFICATION CHECKS PASSED SUCCESSFULLY!");
+  console.log("ALL LOCAL VERIFICATION CHECKS PASSED.");
+  console.log("Gateway behavior, OAuth sign-in, and OpenAI submission acceptance still require external verification.");
   process.exit(0);
 } else {
   console.error(`VERIFICATION FAILED: ${errorCount} error(s) found.`);

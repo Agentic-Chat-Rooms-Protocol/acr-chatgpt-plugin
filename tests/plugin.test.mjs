@@ -1,13 +1,62 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { join, dirname, resolve, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { inflateSync } from "node:zlib";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
+
+function assertPackagedFile(path) {
+  const resolved = resolve(root, path);
+  const local = relative(root, resolved);
+  assert.ok(local && !isAbsolute(local) && local !== ".." && !local.startsWith(`..${sep}`), `${path} must stay inside the package`);
+  assert.ok(statSync(resolved).isFile(), `${path} must name a file`);
+}
+
+function decodeRgbaPng(buffer, width, height) {
+  assert.equal(buffer[24], 8, "brand PNGs use 8-bit channels");
+  assert.equal(buffer[25], 6, "brand PNGs use RGBA");
+  assert.equal(buffer[28], 0, "brand PNGs are not interlaced");
+  const chunks = [];
+  for (let offset = 8; offset < buffer.length;) {
+    const length = buffer.readUInt32BE(offset);
+    assert.ok(length <= buffer.length - offset - 12, "PNG chunk fits in the file");
+    if (buffer.toString("ascii", offset + 4, offset + 8) === "IDAT") chunks.push(buffer.subarray(offset + 8, offset + 8 + length));
+    offset += length + 12;
+  }
+  const stride = width * 4;
+  const raw = inflateSync(Buffer.concat(chunks), { maxOutputLength: (stride + 1) * height });
+  assert.equal(raw.length, (stride + 1) * height);
+  const pixels = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y++) {
+    const row = y * (stride + 1);
+    const filter = raw[row];
+    assert.ok(filter <= 4, "PNG scanline filter is valid");
+    for (let x = 0; x < stride; x++) {
+      const position = y * stride + x;
+      const left = x >= 4 ? pixels[position - 4] : 0;
+      const up = y > 0 ? pixels[position - stride] : 0;
+      const upperLeft = y > 0 && x >= 4 ? pixels[position - stride - 4] : 0;
+      let predictor = 0;
+      if (filter === 1) predictor = left;
+      else if (filter === 2) predictor = up;
+      else if (filter === 3) predictor = Math.floor((left + up) / 2);
+      else if (filter === 4) {
+        const estimate = left + up - upperLeft;
+        const a = Math.abs(estimate - left);
+        const b = Math.abs(estimate - up);
+        const c = Math.abs(estimate - upperLeft);
+        predictor = a <= b && a <= c ? left : b <= c ? up : upperLeft;
+      }
+      pixels[position] = (raw[row + 1 + x] + predictor) & 255;
+    }
+  }
+  return pixels;
+}
 
 describe("Source package hygiene", () => {
   it("tracks no build archives or publication receipts", () => {
@@ -19,6 +68,7 @@ describe("Source package hygiene", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
     assert.equal(pkg.scripts.bundle, undefined);
     assert.ok(!existsSync(join(root, "scripts", "bundle-submission.mjs")));
+    assert.ok(!existsSync(join(root, "publication-receipt.json")));
   });
 
   it("ships no nonexistent library entry point or install-time execution instructions", () => {
@@ -57,6 +107,17 @@ describe("Connector listing", () => {
         const height = buffer.readUInt32BE(20);
         assert.ok(width >= 48 && height >= 48 && width <= 4096 && height <= 4096, name);
         assert.equal(width, height, `${name} must be square`);
+        const pixels = decodeRgbaPng(buffer, width, height);
+        const colors = new Set();
+        let transparent = false;
+        let opaque = false;
+        for (let offset = 0; offset < pixels.length; offset += 4) {
+          if (colors.size < 32) colors.add(pixels.readUInt32BE(offset));
+          transparent ||= pixels[offset + 3] === 0;
+          opaque ||= pixels[offset + 3] === 255;
+        }
+        assert.ok(colors.size >= 32 && transparent && opaque, `${name} must contain real artwork, not a solid fill`);
+        assert.match(buffer.toString("latin1"), /Modified \d{4}-\d{2}-\d{2}: resized and padded/);
         const hash = createHash("sha256").update(buffer).digest("hex");
         assert.ok(!hashes.has(hash), `${name} must be distinct`);
         hashes.add(hash);
@@ -68,7 +129,7 @@ describe("Connector listing", () => {
 
   it("references existing files and derives inventory counts from the tree", () => {
     for (const path of Object.values(listing.distribution)) {
-      assert.ok(existsSync(join(root, path)), `${path} must exist`);
+      assertPackagedFile(path);
     }
     const mcp = JSON.parse(readFileSync(join(root, "mcp.json"), "utf-8")).mcpServers.acr;
     const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"));
@@ -101,6 +162,9 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
     assert.ok(iface.developerName.length <= 80);
     assert.equal(iface.category, "Developer Tools");
     assert.ok(iface.capabilities.length <= 20);
+    assert.ok(iface.capabilities.every((capability) => capability.length <= 120));
+    assert.ok(iface.defaultPrompt.length <= 3);
+    assert.ok(iface.defaultPrompt.every((prompt) => prompt.length <= 128));
     assert.equal(iface.brandColor, "#4A6FA5");
   });
 
@@ -130,6 +194,34 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
     assert.doesNotMatch(JSON.stringify(iface), /AAA|Astra|GPT-6|Runtime Protocol Tax|hardened/i);
     assert.equal(listing.endpoints.domainVerification.token, plugin.extensions["com.openai"].review.domain_verification.token);
   });
+
+  it("references contained visual assets and public HTTPS listing URLs", () => {
+    const iface = plugin.extensions["com.openai"].interface;
+    for (const field of ["composerIcon", "composerIconDark", "logo", "logoDark"]) {
+      assert.ok(iface[field].startsWith("./assets/"));
+      assertPackagedFile(iface[field]);
+    }
+    for (const field of ["websiteURL", "supportURL", "privacyPolicyURL", "termsOfServiceURL"]) {
+      const url = new URL(iface[field]);
+      assert.equal(url.protocol, "https:");
+      assert.equal(url.username + url.password + url.search + url.hash, "");
+    }
+  });
+
+  it("meets OpenAI brand contrast requirements in both themes", () => {
+    const iface = plugin.extensions["com.openai"].interface;
+    const luminance = (hex) => {
+      assert.match(hex, /^#[0-9A-Fa-f]{6}$/);
+      const channels = hex.slice(1).match(/../g).map((value) => parseInt(value, 16) / 255);
+      const [r, g, b] = channels.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    for (const [color, background] of [[iface.brandColor, "#FFFFFF"], [iface.brandColorDark, "#212121"]]) {
+      const a = luminance(color);
+      const b = luminance(background);
+      assert.ok((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) >= 2);
+    }
+  });
 });
 
 describe("ACR MCP Tool Definitions", () => {
@@ -148,6 +240,7 @@ describe("ACR MCP Tool Definitions", () => {
     assert.equal(auth.api_key_profile, undefined);
     assert.deepEqual(Object.keys(config).sort(), ["$schema", "mcpServers"]);
     assert.deepEqual(Object.keys(config.mcpServers), ["acr"]);
+    assert.deepEqual(Object.keys(mcp).sort(), ["extensions", "type", "url"]);
     assert.deepEqual(Object.keys(auth).sort(), ["baseScopes", "resource", "type"]);
   });
 
@@ -212,7 +305,7 @@ describe("Interactive MCP Apps Canvas (.app.json)", () => {
 
   it("declares mcp-app MIME profile and entrypoint", () => {
     assert.equal(app.mimeType, "text/html;profile=mcp-app");
-    assert.ok(existsSync(join(root, app.entrypoint)));
+    assertPackagedFile(app.entrypoint);
     assert.ok(app.capabilities.rendering.includes("canvas"));
     assert.equal(app.capabilities.realtime, false);
     assert.match(app.description, /local preview/i);
@@ -231,6 +324,7 @@ describe("Interactive MCP Apps Canvas (.app.json)", () => {
     assert.doesNotMatch(html, /<script(?:\s[^>]*)?>(?!<\/script>)/);
     assert.doesNotMatch(`${html}\n${script}`, /\b(?:alert|prompt|eval|fetch|XMLHttpRequest|WebSocket)\s*\(|innerHTML|outerHTML|insertAdjacentHTML|\bon\w+\s*=/);
     assert.ok(html.indexOf("Content-Security-Policy") < html.indexOf("<style>"));
+    assert.match(html, /#vote-status\s*\{[^}]*overflow-wrap:\s*anywhere;/);
   });
 });
 
@@ -249,12 +343,12 @@ describe("Progressive-Disclosure Skills (skills/)", () => {
       const path = join(root, `skills/${skill}/SKILL.md`);
       assert.ok(existsSync(path), `SKILL.md for ${skill} exists`);
       const content = readFileSync(path, "utf-8");
-      assert.ok(content.startsWith("---\n"));
+      assert.match(content, /^---\r?\n/);
       assert.ok(content.includes(`name: ${skill}`));
       assert.ok(content.includes("Do NOT"));
 
       // Sub-400-word leaf invariant
-      const body = content.replace(/^---[\s\S]*?---\s*/, "");
+      const body = content.replace(/^---\r?\n[\s\S]*?\r?\n---\s*/, "");
       const words = body.trim().split(/\s+/).filter(Boolean).length;
       assert.ok(words < 400, `Word count ${words} must be < 400`);
     });
