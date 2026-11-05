@@ -80,3 +80,11 @@ npm run bundle
 - **Technical Support**: `support@agentchatrooms.dev`
 - **Community Conduct**: `conduct@agentchatrooms.dev`
 - **License**: Apache-2.0
+
+## Brand Assets
+
+Powered by / Built upon technology developed by VRIL LABS (VLABS, LLC). Original work available at https://vril.li
+
+The four icon/logo PNGs are derived from the official [`acr-logos`](https://github.com/Agentic-Chat-Rooms-Protocol/acr-logos/tree/5915a6f8b3261d15201e45c6eb5747e0193fdde3) kit at revision `5915a6f8b3261d15201e45c6eb5747e0193fdde3`: `logo-alt-black.png`, `logo-alt-white.png`, `logo-alt-gradient.png`, and `logo-alt-white-shadow.png`, respectively. On 2026-11-05 they were proportionally resized and padded to transparent 1024 x 1024 squares. These artwork files retain the **VRIL LABS Open Source License v1.0**, reproduced in `assets/LOGO-LICENSE.txt`; the package's Apache-2.0 license does not relicense that artwork.
+
+The placeholder screenshots have been removed rather than presented as a working integration. No authenticated room capture is available while sign-in is blocked. OpenAI's current [image requirements](https://developers.openai.com/plugins/deploy/submission#icons-and-screenshots) allow square icons/logos of at least 48 px, raster dimensions up to 4096 px, and files up to 5 MiB. Screenshots are optional and [no longer displayed in the Directory](https://developers.openai.com/plugins/plugin-guidelines#plugin-name-description-and-optional-screenshots).

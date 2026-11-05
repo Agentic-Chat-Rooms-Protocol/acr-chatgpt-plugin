@@ -4,6 +4,7 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
@@ -29,6 +30,28 @@ describe("Connector listing", () => {
     assert.equal(listing.endpoints.domainVerification.status, "PENDING");
     assert.equal(listing.submittedAt, undefined);
     assert.doesNotMatch(JSON.stringify(listing), /VERIFIED|PUBLISHED|sizeBytes|"package"/);
+  });
+
+  describe("Publication assets", () => {
+    it("uses distinct, non-placeholder PNGs within OpenAI image limits", () => {
+      const hashes = new Set();
+      const images = readdirSync(join(root, "assets")).filter((name) => name.endsWith(".png"));
+      assert.deepEqual(images.sort(), ["icon-dark.png", "icon.png", "logo-dark.png", "logo.png"]);
+      for (const name of images) {
+        const buffer = readFileSync(join(root, "assets", name));
+        assert.deepEqual(buffer.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+        assert.ok(buffer.length > 1024 && buffer.length <= 5 * 1024 * 1024, name);
+        const width = buffer.readUInt32BE(16);
+        const height = buffer.readUInt32BE(20);
+        assert.ok(width >= 48 && height >= 48 && width <= 4096 && height <= 4096, name);
+        assert.equal(width, height, `${name} must be square`);
+        const hash = createHash("sha256").update(buffer).digest("hex");
+        assert.ok(!hashes.has(hash), `${name} must be distinct`);
+        hashes.add(hash);
+      }
+      assert.ok(!existsSync(join(root, "scripts", "generate-assets.mjs")));
+      assert.ok(existsSync(join(root, "assets", "LOGO-LICENSE.txt")));
+    });
   });
 
   it("references existing files and derives inventory counts from the tree", () => {
