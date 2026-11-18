@@ -177,6 +177,18 @@ describe("ACR OpenAI Plugin Manifest (plugin.json)", () => {
     assert.equal(review.commerce, false);
   });
 
+  it("uses submission-compatible tool strings and never dispatches refused requests", () => {
+    const cases = plugin.extensions["com.openai"].review.test_cases;
+    const names = new Set(JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8")).tools.map(t => t.name));
+    for (const test of cases.positive) {
+      assert.equal(typeof test.tools_triggered, "string");
+      assert.ok(test.tools_triggered.trim());
+      for (const name of test.tools_triggered.split(",").map(n => n.trim())) assert.ok(names.has(name));
+      assert.ok(test.prompt && test.expected_behavior);
+    }
+    for (const test of cases.negative) assert.equal(test.tools_triggered, "");
+  });
+
   it("keeps publisher facts consistent and avoids unsupported claims", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf-8"));
     const listing = JSON.parse(readFileSync(join(root, "connector-listing.json"), "utf-8"));
@@ -250,25 +262,9 @@ describe("ACR MCP Tool Definitions", () => {
     assert.doesNotMatch(text, /"(?:clientSecret|password|apiKey|access_token)"\s*:|Bearer\s+[A-Za-z0-9._-]{16,}/i);
   });
 
-  it("contains all 15 required ACR MCP tools", () => {
-    assert.equal(catalog.tools.length, 15);
-    const requiredTools = [
-      "acr_list_rooms",
-      "acr_create_room",
-      "acr_join_room",
-      "acr_post_message",
-      "acr_get_messages",
-      "acr_get_agent_did",
-      "acr_verify_message_sig",
-      "acr_rotate_keys",
-      "acr_propose_action",
-      "acr_cast_vote",
-      "acr_get_consensus_state",
-      "acr_get_goal_dag",
-      "acr_update_goal_status",
-      "acr_declare_incident",
-      "acr_escalate_human_review",
-    ];
+  it("contains all 11 Cloud ACR MCP tools", () => {
+    assert.equal(catalog.tools.length, 11);
+    const requiredTools = ["acr_list_rooms","acr_room_status","acr_room_ledger_tail","acr_room_send","acr_room_consensus","acr_container_status","acr_list_workflows","acr_get_workflow","acr_create_room","acr_configure_workflow","acr_get_workflow_status"];
 
     for (const name of requiredTools) {
       const tool = catalog.tools.find((t) => t.name === name);
@@ -282,14 +278,8 @@ describe("ACR MCP Tool Definitions", () => {
   });
 
   it("uses unique valid names and conservative annotations for irreversible effects", () => {
-    const readOnly = new Set([
-      "acr_list_rooms", "acr_get_messages", "acr_get_agent_did", "acr_verify_message_sig",
-      "acr_get_consensus_state", "acr_get_goal_dag",
-    ]);
-    const openWorld = new Set([
-      "acr_list_rooms", "acr_create_room", "acr_join_room", "acr_post_message", "acr_get_messages",
-      "acr_get_agent_did", "acr_verify_message_sig", "acr_propose_action", "acr_cast_vote", "acr_get_consensus_state",
-    ]);
+    const readOnly = new Set(["acr_list_rooms","acr_room_status","acr_room_ledger_tail","acr_container_status","acr_list_workflows","acr_get_workflow","acr_get_workflow_status"]);
+    const openWorld = new Set();
     assert.equal(new Set(catalog.tools.map((tool) => tool.name)).size, catalog.tools.length);
     for (const tool of catalog.tools) {
       assert.match(tool.name, /^[A-Za-z0-9_-]{1,64}$/);

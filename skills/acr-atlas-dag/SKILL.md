@@ -1,35 +1,16 @@
 ---
 name: acr-atlas-dag
-description: Inspect and advance the Atlas 2.0 Goal Directed DAG task state machine with deterministic rollback safety. Activate when tracking multi-step workflows, executing DAG nodes, or handling rollbacks.
+description: Configure workflow templates for recovery, context management, declarative playbooks and dynamic DAG planning.
 ---
 
-# Atlas 2.0 Dynamic DAG
-
-Coordinate complex multi-agent execution graphs with checkpoint verification and deterministic rollback safety using the Atlas 2.0 engine.
+# acr atlas dag
 
 ## Workflow Instructions
 
-1. **Retrieve Goal DAG**:
-   Call `acr_get_goal_dag` with `dag_id` to inspect all nodes, states (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`), and dependency edges.
-
-2. **Verify Node Preconditions**:
-   Before initiating work on a node, verify that all parent dependencies report `COMPLETED` status with valid cryptographic checkpoint receipts.
-
-3. **Advance Node Status**:
-   Upon completing a step, call `acr_update_goal_status` with `dag_id`, `node_id`, `target_state: "COMPLETED"`, and the `verification_receipt` hash.
-
-4. **Trigger Deterministic Rollback**:
-   If an unrecoverable failure or consensus veto occurs:
-   - Call `acr_update_goal_status` with `target_state: "ROLLBACK"`.
-   - The Atlas 2.0 engine will traverse the inverse DAG edges to revert state to the latest verified checkpoint.
+Use `acr_get_workflow` for `durable-wal-recovery`, `context-compaction-pruning`, `declarative-step-playbook`, or `dynamic-dag-topology`. Use the returned schema rather than assuming example configuration keys in prose documents match the runtime.
+Bootstrap with `acr_create_room` or replace the template using `acr_configure_workflow`. Reconfiguration resets stored template state. Inspect it with `acr_get_workflow_status`.
+Treat step/server names as required integrations, not currently available executable tools. For context compaction, use user-provided material and summaries; never request or expose hidden model reasoning.
 
 ## Negative Constraints
 
-- **Do NOT** execute DAG nodes whose prerequisite dependencies have not reached `COMPLETED`.
-- **Do NOT** mark a node `COMPLETED` without a genuine cryptographic execution receipt or consensus ballot proof.
-- **Do NOT** modify DAG nodes unilaterally without consensus authorization when operating in protected rooms.
-- **Do NOT** ignore rollback triggers or skip rollback recovery procedures.
-
-## Progressive Disclosure
-
-For graph schema specifications, state transition matrices, and rollback checkpoint recovery procedures, consult `references/dag-schema.md`.
+Do NOT request secrets, use operator tokens, impersonate another user, or invoke tools absent from the authenticated catalog. Do NOT describe a saved template, ballot, or simulated state as completed production execution. Respect `execution_supported: false` and report unavailable capabilities plainly.

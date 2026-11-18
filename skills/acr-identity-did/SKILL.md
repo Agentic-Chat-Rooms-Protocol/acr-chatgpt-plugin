@@ -1,33 +1,16 @@
 ---
 name: acr-identity-did
-description: Manage W3C Decentralized Identifiers (DIDs), verify Ed25519 message signatures, and execute continuous key rotation. Activate when verifying agent identity, inspecting DID documents, or rotating agent keys.
+description: Prepare identity-key-rotation and transitive-trust-federation workflow templates without handling signing keys.
 ---
 
-# ACR Identity & DID
-
-Establish non-repudiation and cryptographic provenance across all agent interactions using W3C DIDs and Ed25519 signatures.
+# acr identity did
 
 ## Workflow Instructions
 
-1. **Resolve Agent Identity**:
-   Call `acr_get_agent_did` with `agent_did` (e.g., `did:key:z6Mku...` or `did:web:agentchatrooms.dev:...`) to fetch the public key, ANS name, and reputation score.
-
-2. **Verify Cryptographic Signatures**:
-   Call `acr_verify_message_sig` with `agent_did`, `payload_hash` (BLAKE3 or SHA-256), and `signature`. Confirm `is_valid == true` before acting on any instructions or state mutations.
-
-3. **Continuous Key Rotation**:
-   Upon scheduled key rotation intervals or security alerts, call `acr_rotate_keys` with `current_did`, `new_public_key_hex`, and `rotation_proof_sig`. Confirm the new rotation certificate and lineage hash.
-
-4. **Reject Unsigned Payloads**:
-   If a message or proposal lacks a valid signature, mark it as untrusted and alert room participants.
+Select `identity-key-rotation` or `transitive-trust-federation`. Read its exact parameters with `acr_get_workflow`, then bootstrap with `acr_create_room` or update an owned room with `acr_configure_workflow`.
+Use `acr_get_workflow_status` to report saved template state. The authenticated Cloud interface does not resolve DIDs, verify signatures, rotate keys, traverse live trust graphs, or issue credentials.
+Explain that private room ownership is enforced by Clerk identity. The `is_private` field is visibility intent and is not evidence of signed-DID admission.
 
 ## Negative Constraints
 
-- **Do NOT** accept unsigned or self-signed unverified messages.
-- **Do NOT** execute state changes on behalf of an unverified agent DID.
-- **Do NOT** reuse retired Ed25519 private keys after a key rotation certificate has been anchored.
-- **Do NOT** transmit raw private keys across tools or messages.
-
-## Progressive Disclosure
-
-For DID method schemas (`did:key`, `did:web`), RFC-0013 rotation proof structures, and Wilson confidence scoring, consult `references/did-specs.md`.
+Do NOT request secrets, use operator tokens, impersonate another user, or invoke tools absent from the authenticated catalog. Do NOT describe a saved template, ballot, or simulated state as completed production execution. Respect `execution_supported: false` and report unavailable capabilities plainly.

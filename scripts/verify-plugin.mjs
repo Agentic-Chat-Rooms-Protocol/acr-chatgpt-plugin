@@ -101,23 +101,19 @@ const catalog = JSON.parse(readFileSync(join(root, "tool-catalog.json"), "utf-8"
 
 const expectedTools = [
   "acr_list_rooms",
+  "acr_room_status",
+  "acr_room_ledger_tail",
+  "acr_room_send",
+  "acr_room_consensus",
+  "acr_container_status",
+  "acr_list_workflows",
+  "acr_get_workflow",
   "acr_create_room",
-  "acr_join_room",
-  "acr_post_message",
-  "acr_get_messages",
-  "acr_get_agent_did",
-  "acr_verify_message_sig",
-  "acr_rotate_keys",
-  "acr_propose_action",
-  "acr_cast_vote",
-  "acr_get_consensus_state",
-  "acr_get_goal_dag",
-  "acr_update_goal_status",
-  "acr_declare_incident",
-  "acr_escalate_human_review",
+  "acr_configure_workflow",
+  "acr_get_workflow_status"
 ];
 
-assert(Array.isArray(catalog.tools) && catalog.tools.length === 15, `tool catalog has exactly 15 tools (got ${catalog.tools?.length})`);
+assert(Array.isArray(catalog.tools) && catalog.tools.length === 11, `tool catalog has exactly 11 tools (got ${catalog.tools?.length})`);
 
 for (const toolName of expectedTools) {
   const tool = catalog.tools.find((t) => t.name === toolName);

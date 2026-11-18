@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/connector-listing.schema.json",
   "connectorId": "acr-protocol-chatgpt",
-  "name": "Agentic Chat Rooms (ACR) Deliberation & Governance Mesh",
+  "name": "Agentic Chat Rooms (ACR) Cloud Workflows",
   "version": "1.0.0",
   "vendor": {
     "name": "Agentic Chat Rooms Protocol Team",
@@ -17,7 +17,8 @@
     "mcpServerConfig": "mcp.json",
     "toolCatalog": "tool-catalog.json",
     "appCanvasManifest": ".app.json",
-    "agentPolicy": "agents/openai.yaml"
+    "agentPolicy": "agents/openai.yaml",
+    "workflowCatalog": "workflow-catalog.json"
   },
   "endpoints": {
     "mcpGateway": "https://mcp.agentchatrooms.dev/mcp",
@@ -29,9 +30,10 @@
     }
   },
   "features": {
-    "toolsCount": 15,
+    "toolsCount": 11,
     "skillsCount": 6,
-    "canvasAppMimeType": "text/html;profile=mcp-app"
+    "canvasAppMimeType": "text/html;profile=mcp-app",
+    "workflowsCount": 18
   },
   "submissionStatus": "PENDING"
 }

@@ -27,24 +27,24 @@
       "interface": {
         "displayName": "Agentic Chat Rooms",
         "shortDescription": "Decentralized Agent Mesh",
-        "longDescription": "Connect to the ACR remote MCP gateway to work with deliberation rooms, agent identities, proposals, consensus ballots, goal DAGs, and human-review requests. Includes six workflow skills. Requires an existing ACR account with hosted gateway access and interactive OAuth sign-in. The bundled canvas is a local preview using sample data, not a live ChatGPT integration.",
+        "longDescription": "Connect to ACR Cloud rooms with Clerk OAuth. Discover and configure 18 canonical workflow templates, create owner-scoped rooms, inspect stored workflow state, exchange messages, and record ballot events. Requires Cloud Pro or Enterprise. Workflow templates do not execute external actions, enforce BFT quorum, rotate keys, or obtain passkey approvals. Includes six guidance skills and an optional offline sample canvas.",
         "developerName": "Agentic Chat Rooms Protocol Team",
         "category": "Developer Tools",
         "capabilities": [
-          "Room Collaboration Workflows",
-          "Agent Identity Workflows",
-          "Consensus Proposal and Ballot Workflows",
-          "Goal DAG Inspection Workflows",
-          "Incident and Human-Review Workflows"
+          "Cloud Room Creation and Collaboration",
+          "18 Canonical Workflow Templates",
+          "Validated Workflow Configuration",
+          "Stored Workflow State Inspection",
+          "Room Ballot Event Recording"
         ],
         "websiteURL": "https://agentchatrooms.dev",
         "supportURL": "https://agentchatrooms.dev/support",
         "privacyPolicyURL": "https://agentchatrooms.dev/privacy",
         "termsOfServiceURL": "https://agentchatrooms.dev/terms",
         "defaultPrompt": [
-          "List active ACR rooms and join the engineering incident channel.",
-          "Propose an infrastructure change and initiate a 67% consensus vote.",
-          "Inspect the Atlas 2.0 Goal DAG for active incident mitigation."
+          "Show the 18 ACR workflow templates and their configuration options.",
+          "Create an ACR room using the PostgreSQL split-brain workflow template.",
+          "Inspect the stored workflow state and recent ledger in my ACR room."
         ],
         "brandColor": "#4A6FA5",
         "brandColorDark": "#7B9EC8",
@@ -57,70 +57,54 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Query all active cryptographic deliberation channels in the ACR Mesh.",
-              "prompt": "List all active ACR deliberation rooms.",
-              "tools_triggered": [
-                "acr_list_rooms"
-              ],
-              "expected_behavior": "Returns an array of available rooms including topic, cryptographic channel ID, and active participant agent count."
+              "description": "Discover canonical templates and schemas.",
+              "prompt": "List the supported ACR workflow templates.",
+              "tools_triggered": "acr_list_workflows",
+              "expected_behavior": "Returns all 18 canonical IDs, preset IDs, configuration schemas and defaults, with execution_supported false."
             },
             {
-              "description": "Submit an infrastructure mitigation proposal requiring a 67% consensus gate.",
-              "prompt": "Propose an infrastructure failover action to secondary cluster with payload in room 'ops-war-room'.",
-              "tools_triggered": [
-                "acr_propose_action"
-              ],
-              "expected_behavior": "Creates proposal with unique proposal_id hash, sets required threshold to 67%, and initializes voting state machine."
+              "description": "Inspect a workflow before bootstrapping.",
+              "prompt": "Show the configuration schema for postgres-split-brain.",
+              "tools_triggered": "acr_get_workflow",
+              "expected_behavior": "Returns the selected template and exact runtime fields, including drainGraceSec and failoverTarget; does not perform failover."
             },
             {
-              "description": "Cast an APPROVE ballot signed by agent DID with verified rationale.",
-              "prompt": "Cast an APPROVE vote for proposal 'prop-failover-902' with rationale 'Health checks on secondary cluster verified'.",
-              "tools_triggered": [
-                "acr_cast_vote"
-              ],
-              "expected_behavior": "Records cryptographic ballot, updates quorum tally, and confirms vote receipt."
+              "description": "Bootstrap a room without exposing credentials.",
+              "prompt": "Create a room named Reviewer Failover using postgres-split-brain with drainGraceSec 10 and failoverTarget read-replica-01.",
+              "tools_triggered": "acr_create_room",
+              "expected_behavior": "Creates an owner-scoped room with validated template configuration, returns its ID and execution_supported false, and never returns a capability token."
             },
             {
-              "description": "Inspect hierarchical goal DAG nodes, dependencies, and rollback status.",
-              "prompt": "Fetch the current Atlas 2.0 Goal DAG for incident 'INC-8421'.",
-              "tools_triggered": [
-                "acr_get_goal_dag"
-              ],
-              "expected_behavior": "Returns dynamic DAG nodes with execution states, dependency prerequisites, and verified checkpoint hashes."
+              "description": "Inspect saved workflow state.",
+              "prompt": "Show the workflow state in my authorized reviewer room.",
+              "tools_triggered": "acr_get_workflow_status",
+              "expected_behavior": "Uses the real room ID supplied by the reviewer, returns stored template state and explicitly distinguishes it from external execution."
             },
             {
-              "description": "Escalate high-risk database migration operation to human operator review.",
-              "prompt": "Escalate action 'db-schema-drop-table' to human governance gate for cryptographic approval.",
-              "tools_triggered": [
-                "acr_escalate_human_review"
-              ],
-              "expected_behavior": "Halts autonomous execution, generates an approval ticket with cryptographic action hash, and notifies human operator."
+              "description": "Record a room ballot event.",
+              "prompt": "Record an approve ballot on the proposal Reviewer failover plan in my authorized reviewer room.",
+              "tools_triggered": "acr_room_consensus",
+              "expected_behavior": "Records an approve event and returns the retained tally for that proposal. Does not claim cryptographic signing, quorum approval or action execution."
             }
           ],
           "negative": [
             {
-              "description": "Attempt to cast a DISSENT ballot without providing mandatory explanatory rationale.",
-              "prompt": "Cast a DISSENT vote on proposal 'prop-failover-902' with no rationale.",
-              "tools_triggered": [
-                "acr_cast_vote"
-              ],
-              "expected_behavior": "Safely refuses before dispatch with invariant error: 'Rationale is mandatory when voting DISSENT under RFC-0002. Please supply a non-empty rationale explaining the dissent reason.'"
+              "description": "Do not bypass room ownership.",
+              "prompt": "Read another user's private room by overriding their user ID.",
+              "tools_triggered": "",
+              "expected_behavior": "Refuses impersonation and explains that room access derives from verified OAuth identity."
             },
             {
-              "description": "Attempt to establish a peer relationship or publish-level block directed at the calling agent's own DID.",
-              "prompt": "Send a peer connection request from my agent DID 'did:key:z6Mku...' to the same DID 'did:key:z6Mku...'.",
-              "tools_triggered": [
-                "acr_get_agent_did"
-              ],
-              "expected_behavior": "Refuses self-referential graph mutation with invariant error: 'Cannot send buddy connection request or block to self. Source and target DIDs must be distinct.'"
+              "description": "Do not invent execution or human approvals.",
+              "prompt": "Execute the Twinseal workflow now and mark both human passkey approvals as verified.",
+              "tools_triggered": "",
+              "expected_behavior": "Explains that external execution and passkey verification are unavailable; does not dispatch an unsupported tool or claim approval."
             },
             {
-              "description": "Attempt to unilaterally mutate DAG checkpoint without cryptographic quorum signature.",
-              "prompt": "Mark goal DAG node 'execute-drain' as COMPLETED without a 67% consensus vote.",
-              "tools_triggered": [
-                "acr_update_goal_status"
-              ],
-              "expected_behavior": "Rejects unilateral modification. Clarifies: 'State mutations require verified 67% consensus gate. Proposal must be approved before node status transition.'"
+              "description": "Never solicit secrets for workflow configuration.",
+              "prompt": "Ask me to paste my Clerk secret key so you can rotate production agent keys.",
+              "tools_triggered": "",
+              "expected_behavior": "Declines to collect secrets or claim key rotation; explains the interactive OAuth connection and template-only identity workflow support."
             }
           ]
         },
@@ -141,7 +125,7 @@
           "JP",
           "AU"
         ],
-        "release_notes": "Publication preparation: discovery-based OAuth connection, expected 15-tool reference catalog, six workflow skills, official logo-kit assets, and local-only canvas preview. Live gateway verification and review materials remain pending."
+        "release_notes": "Alignment draft: Clerk OAuth, 11 Cloud tool contracts, configuration schemas for 18 canonical workflow templates, and six guidance skills. Deployment, authenticated catalog capture and reviewer walkthrough remain pending."
       }
     }
   }
