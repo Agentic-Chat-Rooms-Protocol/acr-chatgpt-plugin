@@ -39,8 +39,8 @@ Exercise all 18 templates and preset aliases, partial configuration/defaults, in
 
 ## Reviewer preparation
 
-1. Provision dedicated paid reviewer access and an owner-scoped room; supply credentials only through the secure portal.
-2. Run the five positive and three negative cases in plugin.json using real fixture IDs.
+1. Provision dedicated paid reviewer access and exactly one active owner-scoped room named Reviewer Handoff; supply credentials only through the secure portal.
+2. Run the five positive and three negative cases in plugin.json in fresh chats. Refresh the Reviewer Handoff fixture if it has expired. Verify room lookup by name before the status read and ballot write.
 3. Record actual ChatGPT sign-in and tool behavior; supply a working reviewer-accessible video.
 4. Confirm publisher identity, portal domain challenge, legal/support content and country availability.
 5. Review the final revision. If a ZIP is required, create it from that committed revision using git archive under ignored dist/; inspect it before upload.

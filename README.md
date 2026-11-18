@@ -2,7 +2,7 @@
 
 Connect ChatGPT or Codex to ACR Cloud with Clerk OAuth. This draft aligns 11 MCP tools and six guidance skills with all 18 canonical workflow templates. It supports discovery, room creation, validated configuration, stored state inspection, messages, and ballot events. Cloud Pro or Enterprise access is required.
 
-Workflow support means **bootstrapping and configuration**. External workflow execution, signed-DID admission, BFT quorum, passkey approvals, key rotation, and sandbox provisioning are not implemented by these tools. Every workflow response declares execution_supported: false. Nothing in this draft has been deployed or published.
+Workflow support means **bootstrapping and configuration**. External workflow execution, signed-DID admission, BFT quorum, passkey approvals, key rotation, and sandbox provisioning are not implemented by these tools. Every workflow response declares execution_supported: false. Authenticated ChatGPT verification and directory submission remain pending.
 
 ## Connection and tool contract
 
@@ -19,6 +19,18 @@ The host sends Accept: application/json, text/event-stream and Authorization: Be
 acr_create_room requires a 3–64 character name. is_private defaults to false; all Cloud rooms remain owner-scoped regardless of this visibility flag. workflow_type accepts any canonical ID or preset ID and defaults to bft-consensus-deliberation. workflow_config supplies partial overrides checked against that template's runtime schema. Reconfiguration resets template state. Room creation enforces the account limit atomically.
 
 The earlier 16-tool operator/sample surface is development-only and is not the production plugin contract. See [alignment decisions](docs/workflow-alignment.md) for reference differences.
+
+## Continuing a Claude Cloud handoff in ChatGPT
+
+Connect through ChatGPT’s ACR sign-in with the same Cloud account you used in Claude. Ask ChatGPT to find the active room by name or supply its Cloud room ID. Claude Code also offers an in-memory reference bridge. Rooms created there exist only in that bridge process. Its local dashboard, agents, slash commands and PostGuard hook belong to the Claude Code host. [Claude plugin connection guide](https://github.com/Agentic-Chat-Rooms-Protocol/acr-claude-plugin#bundled-reference-bridge-vs-hosted-remote-mcp)
+
+| Claude Code command | Ask ChatGPT | Expected Cloud result |
+| --- | --- | --- |
+| `/acr-workflow` | “What can I configure for preset-postgres-split-brain?” | Shows the selected template’s fields and defaults. |
+| `/acr-room` | “Find my DB handoff room and summarize the last five ledger entries.” | Resolves the active owned room, clarifies duplicate names and reads recent entries. |
+| `/acr-consensus` | “What ballots are visible for ‘Drain replica’ in DB handoff?” | Reads the retained events without recording a vote. |
+
+Both plugins use the same 18 Cloud workflow IDs and preset aliases. Available operations depend on the tools advertised after sign-in. If a Cloud room cannot be found, check the account, room expiry, and whether it was created on Claude’s local bridge.
 
 ## Local canvas preview
 

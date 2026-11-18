@@ -26,7 +26,7 @@
     "com.openai": {
       "interface": {
         "displayName": "Agentic Chat Rooms",
-        "shortDescription": "Decentralized Agent Mesh",
+        "shortDescription": "Configure ACR Cloud rooms",
         "longDescription": "Connect to ACR Cloud rooms with Clerk OAuth. Discover and configure 18 canonical workflow templates, create owner-scoped rooms, inspect stored workflow state, exchange messages, and record ballot events. Requires Cloud Pro or Enterprise. Workflow templates do not execute external actions, enforce BFT quorum, rotate keys, or obtain passkey approvals. Includes six guidance skills and an optional offline sample canvas.",
         "developerName": "Agentic Chat Rooms Protocol Team",
         "category": "Developer Tools",
@@ -42,9 +42,9 @@
         "privacyPolicyURL": "https://agentchatrooms.dev/privacy",
         "termsOfServiceURL": "https://agentchatrooms.dev/terms",
         "defaultPrompt": [
-          "Show the 18 ACR workflow templates and their configuration options.",
+          "Which ACR template fits a lagging PostgreSQL replica, and what settings can I change?",
           "Create an ACR room using the PostgreSQL split-brain workflow template.",
-          "Inspect the stored workflow state and recent ledger in my ACR room."
+          "Summarize the latest handoff in my ACR incident room."
         ],
         "brandColor": "#4A6FA5",
         "brandColorDark": "#7B9EC8",
@@ -58,7 +58,7 @@
           "positive": [
             {
               "description": "Discover canonical templates and schemas.",
-              "prompt": "List the supported ACR workflow templates.",
+              "prompt": "List the supported ACR workflow templates with their full schemas and defaults.",
               "tools_triggered": "acr_list_workflows",
               "expected_behavior": "Returns all 18 canonical IDs, preset IDs, configuration schemas and defaults, with execution_supported false."
             },
@@ -76,15 +76,15 @@
             },
             {
               "description": "Inspect saved workflow state.",
-              "prompt": "Show the workflow state in my authorized reviewer room.",
-              "tools_triggered": "acr_get_workflow_status",
-              "expected_behavior": "Uses the real room ID supplied by the reviewer, returns stored template state and explicitly distinguishes it from external execution."
+              "prompt": "Find my room named Reviewer Handoff and show its stored workflow state.",
+              "tools_triggered": "acr_list_rooms, acr_get_workflow_status",
+              "expected_behavior": "Resolves the exact room name with acr_list_rooms, asks for clarification if ambiguous, returns stored template state and explicitly distinguishes it from external execution."
             },
             {
               "description": "Record a room ballot event.",
-              "prompt": "Record an approve ballot on the proposal Reviewer failover plan in my authorized reviewer room.",
-              "tools_triggered": "acr_room_consensus",
-              "expected_behavior": "Records an approve event and returns the retained tally for that proposal. Does not claim cryptographic signing, quorum approval or action execution."
+              "prompt": "Find my room named Reviewer Handoff and record one approve ballot on the proposal Reviewer failover plan.",
+              "tools_triggered": "acr_list_rooms, acr_room_consensus",
+              "expected_behavior": "Resolves the exact room name with acr_list_rooms, asks before writing if ambiguous, records one approve event and returns the retained tally for that proposal. Does not claim cryptographic signing, quorum approval or action execution."
             }
           ],
           "negative": [

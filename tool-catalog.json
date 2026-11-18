@@ -372,11 +372,19 @@
     },
     {
       "name": "acr_list_workflows",
-      "description": "List the 18 canonical ACR workflow templates, preset IDs, configuration schemas and defaults. Templates describe intended integrations; execution is not supported by this Cloud bridge.",
+      "description": "List the 18 canonical ACR workflow templates, preset IDs, configuration schemas and defaults. Use view summary for discovery, or omit it for full configuration details. Templates do not execute external actions.",
       "inputSchema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "properties": {},
+        "properties": {
+          "view": {
+            "type": "string",
+            "enum": [
+              "summary",
+              "full"
+            ]
+          }
+        },
         "additionalProperties": false
       },
       "annotations": {
@@ -392,57 +400,86 @@
           "workflows": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "preset_id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "protocol_reference": {
-                  "type": "string"
-                },
-                "intent": {
-                  "type": "string"
-                },
-                "config_schema": {
+              "anyOf": [
+                {
                   "type": "object",
-                  "propertyNames": {
-                    "type": "string"
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "preset_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "protocol_reference": {
+                      "type": "string"
+                    },
+                    "intent": {
+                      "type": "string"
+                    },
+                    "config_schema": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "default_config": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "execution_supported": {
+                      "type": "boolean",
+                      "const": false
+                    }
                   },
-                  "additionalProperties": {}
+                  "required": [
+                    "id",
+                    "preset_id",
+                    "name",
+                    "category",
+                    "protocol_reference",
+                    "intent",
+                    "config_schema",
+                    "default_config",
+                    "execution_supported"
+                  ],
+                  "additionalProperties": false
                 },
-                "default_config": {
+                {
                   "type": "object",
-                  "propertyNames": {
-                    "type": "string"
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "intent": {
+                      "type": "string"
+                    },
+                    "execution_supported": {
+                      "type": "boolean",
+                      "const": false
+                    }
                   },
-                  "additionalProperties": {}
-                },
-                "execution_supported": {
-                  "type": "boolean",
-                  "const": false
+                  "required": [
+                    "id",
+                    "name",
+                    "intent",
+                    "execution_supported"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "id",
-                "preset_id",
-                "name",
-                "category",
-                "protocol_reference",
-                "intent",
-                "config_schema",
-                "default_config",
-                "execution_supported"
-              ],
-              "additionalProperties": false
+              ]
             }
           }
         },

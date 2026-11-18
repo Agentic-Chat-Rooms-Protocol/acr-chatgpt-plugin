@@ -8,7 +8,7 @@ description: Prepare governance workflow templates and record room ballot events
 ## Workflow Instructions
 
 Templates include `bft-consensus-deliberation`, `byzantine-fault-slashing`, and `cross-model-agentflex-synthesis`. Inspect configuration with `acr_get_workflow` and bootstrap an owned room with `acr_create_room`.
-When the user requests a ballot, use `acr_room_consensus` with the exact owned room, named proposal, and `approve`, `reject`, or `abstain`. The tally covers retained events for that proposal; repeated events and the 50-entry retention window mean it is not an electorate-based quorum.
+For a tally question, read the recent ledger and summarize retained ballots for the named proposal without casting one. Ask for a missing proposal, vote choice or ambiguous room before recording a ballot. When the user requests a ballot, use `acr_room_consensus` with the exact owned room, named proposal, and `approve`, `reject`, or `abstain`. The tally covers retained events for that proposal; repeated events and the 50-entry retention window mean it is not an electorate-based quorum.
 Use `acr_room_ledger_tail` to review recent events. Ballots do not authorize external actions or prove agent identity signatures.
 
 ## Negative Constraints
