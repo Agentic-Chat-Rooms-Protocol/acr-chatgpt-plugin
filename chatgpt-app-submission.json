@@ -144,7 +144,7 @@
   "test_cases": [
     {
       "description": "Discover canonical templates and schemas.",
-      "user_prompt": "List the supported ACR workflow templates.",
+      "user_prompt": "List the supported ACR workflow templates with their full schemas and defaults.",
       "file_attachment_urls": null,
       "tools_triggered": "acr_list_workflows",
       "expected_output": "Returns all 18 canonical IDs, preset IDs, configuration schemas and defaults, with execution_supported false.",
@@ -168,18 +168,18 @@
     },
     {
       "description": "Inspect saved workflow state.",
-      "user_prompt": "Show the workflow state in my authorized reviewer room.",
+      "user_prompt": "Find my room named Reviewer Handoff and show its stored workflow state.",
       "file_attachment_urls": null,
-      "tools_triggered": "acr_get_workflow_status",
-      "expected_output": "Uses the real room ID supplied by the reviewer, returns stored template state and explicitly distinguishes it from external execution.",
+      "tools_triggered": "acr_list_rooms, acr_get_workflow_status",
+      "expected_output": "Resolves the exact room name with acr_list_rooms, asks for clarification if ambiguous, returns stored template state and explicitly distinguishes it from external execution.",
       "expected_output_url": null
     },
     {
       "description": "Record a room ballot event.",
-      "user_prompt": "Record an approve ballot on the proposal Reviewer failover plan in my authorized reviewer room.",
+      "user_prompt": "Find my room named Reviewer Handoff and record one approve ballot on the proposal Reviewer failover plan.",
       "file_attachment_urls": null,
-      "tools_triggered": "acr_room_consensus",
-      "expected_output": "Records an approve event and returns the retained tally for that proposal. Does not claim cryptographic signing, quorum approval or action execution.",
+      "tools_triggered": "acr_list_rooms, acr_room_consensus",
+      "expected_output": "Resolves the exact room name with acr_list_rooms, asks before writing if ambiguous, records one approve event and returns the retained tally for that proposal. Does not claim cryptographic signing, quorum approval or action execution.",
       "expected_output_url": null
     }
   ],
