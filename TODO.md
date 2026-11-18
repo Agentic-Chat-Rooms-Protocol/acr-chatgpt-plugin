@@ -24,8 +24,8 @@ The **Agentic Chat Rooms (ACR)** OpenAI Plugin connects ChatGPT, Codex, and GPT-
 | **Source Package Hygiene** | No committed zips or fake publication receipts; clean git tracking | **READY** |
 | **Ecosystem Domain Invariants** | 100% compliant with `@agentchatrooms.dev` (zero legacy domain references) | **READY** |
 | **Local Verification Suite** | 28/28 tests passing (`tests/plugin.test.mjs`, `tests/canvas.test.mjs`, `verify-plugin.mjs`) | **READY** |
-| **OAuth Authorization Server Readiness** | Advertised auth endpoints (`auth.agentchatrooms.dev`) must serve live RFC 8414 metadata | **CRITICAL BLOCKER** |
-| **Live Gateway Tools Parity** | Gateway must serve matching 15 tools and annotations dynamically via `tools/list` | **CRITICAL BLOCKER** |
+| **OAuth Authorization Server Readiness** | Clerk issuer discovery (`clerk.agentchatrooms.dev`, `profile`/`email`) wired on `/.well-known/*`; live interactive consent E2E check required | **VERIFY LIVE** |
+| **Live Gateway Tools Parity** | Gateway OAuth path currently exposes 6 Cloud tools vs 15-tool `tool-catalog.json` | **PARTIAL / ALIGN** |
 | **Domain Ownership Challenge** | Challenge token in `plugin.json` must be confirmed in OpenAI Developer Portal | **ACTION REQUIRED** |
 | **Reviewer Video Walkthrough** | Needs genuine screen recording of the 5 positive and 3 negative review cases | **ACTION REQUIRED** |
 | **Reviewer Account Credentials** | Must provision dedicated Cloud Pro test account for OpenAI review staff | **ACTION REQUIRED** |
@@ -60,7 +60,7 @@ The **Agentic Chat Rooms (ACR)** OpenAI Plugin connects ChatGPT, Codex, and GPT-
   - Configured remote endpoint: `https://mcp.agentchatrooms.dev/mcp` (Streamable HTTP).
   - Declared interactive OAuth 2.1 authentication under `extensions["com.openai"].auth`:
     - Resource URI: `https://mcp.agentchatrooms.dev/mcp`.
-    - Required Base Scopes: `["acr:rooms", "acr:cloud:pro"]`.
+    - Required Base Scopes: `["profile", "email"]` (matching Clerk OAuth metadata on `https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource`; subscription tier is checked by the gateway).
   - Removed all environment variable credential reads (`ACR_CLOUD_TOKEN`) and hardcoded API keys.
 
 - [x] **15-Tool Catalog & Conservative Annotations (`tool-catalog.json`)**
@@ -98,21 +98,15 @@ The **Agentic Chat Rooms (ACR)** OpenAI Plugin connects ChatGPT, Codex, and GPT-
 
 ## 3. Remaining Action Items for Official Marketplace Submission
 
-### Priority 1: OAuth Authorization Server Deployment (Critical Blocker)
-- [ ] **Deploy Live OAuth 2.1 Authorization Server**
-  - `https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource` advertises `https://auth.agentchatrooms.dev` and `https://mesh.agentchatrooms.dev/oauth`.
-  - Deploy the authorization server to serve:
-    - RFC 8414 metadata endpoint: `https://auth.agentchatrooms.dev/.well-known/oauth-authorization-server`.
-    - Interactive authorization endpoint (`/authorize`) with PKCE (`code_challenge_method=S256`).
-    - Token issuance endpoint (`/token`) issuing tokens with scopes `acr:rooms` and `acr:cloud:pro`.
-    - Client registration endpoint (`/register`) supporting OpenAI dynamic client registration.
-  - Verify full end-to-end OAuth flow from a third-party client (authorize -> consent -> code -> token exchange).
+### Priority 1: OAuth Authorization Server Interactive Verification
+- [x] **RFC 8414 / RFC 9728 Metadata Proxied via Clerk**
+  - `https://mcp.agentchatrooms.dev/.well-known/oauth-protected-resource` advertises `https://clerk.agentchatrooms.dev` with `scopes_supported: ["profile", "email"]` and `/.well-known/oauth-authorization-server` proxies Clerk's metadata.
+- [ ] **Verify Live Third-Party Interactive OAuth Consent**
+  - Complete end-to-end OAuth flow from a third-party client against `clerk.agentchatrooms.dev` (authorize -> consent -> code -> token exchange) and verify HTTP 401/403 tier checks in live deployment.
 
 ### Priority 2: Remote MCP Gateway Dynamic Catalog Parity
 - [ ] **Align Hosted MCP Gateway `tools/list` with Catalog**
-  - Ensure the deployed Vercel Function at `https://mcp.agentchatrooms.dev/mcp` serves the matching 15 tool definitions and annotations dynamically.
-  - Verify that token verification against Cloud Pro / Enterprise container leases validates live calls.
-  - Exercise edge cases: missing token (HTTP 401), Community tier token without `acr:cloud:pro` (HTTP 403 step-up), and rate-limit throttling (HTTP 429).
+  - `acr-remote-mcp/src/lib/cloud-tools.ts` currently serves 6 user-scoped Cloud tools (`acr_list_rooms`, `acr_room_status`, `acr_room_ledger_tail`, `acr_room_send`, `acr_room_consensus`, `acr_container_status`). Either back and expose the remaining 9 tools from `tool-catalog.json` on the Clerk path or align `tool-catalog.json` to the backed Cloud surface before OpenAI submission.
 
 ### Priority 3: Domain Ownership Verification in OpenAI Portal
 - [ ] **Confirm Domain Challenge on Production Surface**

@@ -9,7 +9,7 @@
           "auth": {
             "type": "oauth",
             "resource": "https://mcp.agentchatrooms.dev/mcp",
-            "baseScopes": ["acr:rooms", "acr:cloud:pro"]
+            "baseScopes": ["profile", "email"]
           }
         }
       }
