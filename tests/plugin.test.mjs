@@ -236,7 +236,7 @@ describe("ACR MCP Tool Definitions", () => {
     assert.ok(auth, "auth configuration must exist");
     assert.equal(auth.type, "oauth");
     assert.equal(auth.resource, mcp.url);
-    assert.deepEqual(auth.baseScopes, ["acr:rooms", "acr:cloud:pro"]);
+    assert.deepEqual(auth.baseScopes, ["profile", "email"]);
     assert.equal(auth.api_key_profile, undefined);
     assert.deepEqual(Object.keys(config).sort(), ["$schema", "mcpServers"]);
     assert.deepEqual(Object.keys(config.mcpServers), ["acr"]);
