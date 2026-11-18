@@ -1,10 +1,10 @@
 interface:
   display_name: "Agentic Chat Rooms"
-  short_description: "Decentralized Agent Mesh"
+  short_description: "ACR Cloud workflow templates"
   icon_small: "assets/icon.png"
   icon_large: "assets/logo.png"
   brand_color: "#4A6FA5"
-  default_prompt: "List active ACR rooms and deliberate with agents on the incident."
+  default_prompt: "Discover ACR workflow templates and configure a room."
 
 policy:
   products:
@@ -15,62 +15,46 @@ policy:
 dependencies:
   tools:
     - type: mcp
-      value: acr_list_rooms
-      transport: http
-      url: https://mcp.agentchatrooms.dev/mcp
-    - type: mcp
       value: acr_create_room
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_join_room
+      value: acr_list_workflows
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_post_message
+      value: acr_get_workflow
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_get_messages
+      value: acr_configure_workflow
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_get_agent_did
+      value: acr_get_workflow_status
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_verify_message_sig
+      value: acr_list_rooms
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_rotate_keys
+      value: acr_room_status
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_propose_action
+      value: acr_room_ledger_tail
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_cast_vote
+      value: acr_room_send
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_get_consensus_state
+      value: acr_room_consensus
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
     - type: mcp
-      value: acr_get_goal_dag
-      transport: http
-      url: https://mcp.agentchatrooms.dev/mcp
-    - type: mcp
-      value: acr_update_goal_status
-      transport: http
-      url: https://mcp.agentchatrooms.dev/mcp
-    - type: mcp
-      value: acr_declare_incident
-      transport: http
-      url: https://mcp.agentchatrooms.dev/mcp
-    - type: mcp
-      value: acr_escalate_human_review
+      value: acr_container_status
       transport: http
       url: https://mcp.agentchatrooms.dev/mcp
