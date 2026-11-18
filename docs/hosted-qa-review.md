@@ -2,6 +2,10 @@
 
 Checked 2026-11-12 against the public ACR and Clerk services. Status: **blocked before authenticated end-to-end verification and submission**.
 
+## Latest release checks
+
+On November 17 (Pacific), AgentMail accepted the configured key and created a dedicated inbox. ACR signup remained on the form after submission, with a Turnstile field present. No verification email arrived during the check. Interactive consent, paid tool calls and reviewer scenarios still require an accessible reviewer account. The 15 public and credential-rejection checks passed again. The following November 12 observations are historical.
+
 ## AgentMail retry after environment update
 
 The new environment exposes AGENTMAIL_API_KEY and reports it ready. Using the documented Bearer authentication, inbox creation and listing on api.agentmail.to both returned HTTP 403 with only `{"message":"Forbidden"}`. Listing on the documented EU endpoint also returned 403. A read-only retry outside the sandbox produced the same response. No inbox or ACR account was created.
