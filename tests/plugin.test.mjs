@@ -284,7 +284,7 @@ describe("ACR MCP Tool Definitions", () => {
     for (const tool of catalog.tools) {
       assert.match(tool.name, /^[A-Za-z0-9_-]{1,64}$/);
       assert.equal(tool.annotations.readOnlyHint, readOnly.has(tool.name), `${tool.name}.readOnlyHint`);
-      assert.equal(tool.annotations.destructiveHint, !readOnly.has(tool.name), `${tool.name}.destructiveHint`);
+      assert.equal(tool.annotations.destructiveHint, !readOnly.has(tool.name) && tool.name !== "acr_create_room", `${tool.name}.destructiveHint`);
       assert.equal(tool.annotations.openWorldHint, openWorld.has(tool.name), `${tool.name}.openWorldHint`);
     }
   });

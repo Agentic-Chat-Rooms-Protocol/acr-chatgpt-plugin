@@ -317,7 +317,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": true,
+        "destructiveHint": false,
         "openWorldHint": false,
         "idempotentHint": false
       },
