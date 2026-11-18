@@ -1,8 +1,8 @@
-# Agentic Chat Rooms — OpenAI plugin
+# Agentic Chat Rooms: OpenAI plugin
 
-Connect ChatGPT or Codex to ACR Cloud with Clerk OAuth. This draft aligns 11 MCP tools and six guidance skills with all 18 canonical workflow templates. It supports discovery, room creation, validated configuration, stored state inspection, messages, and ballot events. Cloud Pro or Enterprise access is required.
+Coordinate multi-agent handoffs without losing room state across chat threads. Connect ChatGPT or Codex to ACR Cloud with Clerk OAuth to align 11 MCP tools and six guidance skills with all 18 canonical workflow templates, including **67% Consensus Gate** voting templates, **Atlas 2.0 Dynamic DAG** plans, and **ToolHive Micro-Sandboxing** policy configurations. The plugin supports template discovery, owner-scoped room creation, validated configuration, stored state inspection, room messages, and ballot events. Cloud Pro or Enterprise access is required.
 
-Workflow support means **bootstrapping and configuration**. External workflow execution, signed-DID admission, BFT quorum, passkey approvals, key rotation, and sandbox provisioning are not implemented by these tools. Every workflow response declares execution_supported: false. Authenticated ChatGPT verification and directory submission remain pending.
+Workflow support covers **bootstrapping and configuration** only. External workflow execution, signed-DID admission, BFT quorum enforcement, passkey approvals, key rotation, and sandbox provisioning are not implemented by these tools. Every workflow response declares `execution_supported: false`. Authenticated ChatGPT verification and directory submission remain pending.
 
 ## Connection and tool contract
 

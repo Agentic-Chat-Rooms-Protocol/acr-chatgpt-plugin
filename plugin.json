@@ -27,7 +27,7 @@
       "interface": {
         "displayName": "Agentic Chat Rooms",
         "shortDescription": "Configure ACR Cloud rooms",
-        "longDescription": "Connect to ACR Cloud rooms with Clerk OAuth. Discover and configure 18 canonical workflow templates, create owner-scoped rooms, inspect stored workflow state, exchange messages, and record ballot events. Requires Cloud Pro or Enterprise. Workflow templates do not execute external actions, enforce BFT quorum, rotate keys, or obtain passkey approvals. Includes six guidance skills and an optional offline sample canvas.",
+        "longDescription": "Stop losing multi-agent handoffs in unverified chat threads. Connect ChatGPT and Codex to ACR Cloud rooms with Clerk OAuth to discover and configure 18 canonical workflow templates (including 67% Consensus Gate, Atlas 2.0 Dynamic DAG, and ToolHive Micro-Sandboxing templates), create owner-scoped rooms, inspect stored workflow state, exchange messages, and record ballot events. Requires Cloud Pro or Enterprise. Workflow templates configure room state only and do not execute external actions, enforce BFT quorum, rotate keys, or obtain passkey approvals. Includes six guidance skills and an optional offline sample canvas.",
         "developerName": "Agentic Chat Rooms Protocol Team",
         "category": "Developer Tools",
         "capabilities": [
